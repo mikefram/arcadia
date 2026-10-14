@@ -54,7 +54,7 @@ jobs:
           cat dev.log; exit 1
       - name: Playwright
         run: pnpm --filter @mihato/web-admin e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-results
