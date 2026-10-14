@@ -40,7 +40,7 @@ jobs:
           tags: |
             type=ref,event=tag
             type=sha,prefix=sha-,format=short
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: .
           target: ${{ matrix.target }}
