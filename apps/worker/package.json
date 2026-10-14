@@ -15,7 +15,7 @@
     "@mihato/i18n": "workspace:*",
     "@mihato/providers": "workspace:*",
     "@mihato/workflow-engine": "workspace:*",
-    "drizzle-orm": "^0.45.3",
+    "drizzle-orm": "^0.45.4",
     "pg": "^8.23.1",
     "tsx": "^4.23.15"
   },
