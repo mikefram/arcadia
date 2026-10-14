@@ -1,0 +1,23 @@
+{
+  "name": "@mihato/scribe",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/main.ts",
+    "start": "tsx src/main.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@mihato/ai-tools": "workspace:*",
+    "@mihato/domain": "workspace:*",
+    "@mihato/i18n": "workspace:*",
+    "@mihato/providers": "workspace:*",
+    "jose": "^6.2.12",
+    "tsx": "^4.23.15",
+    "ws": "^8.22.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": { "@mihato/config": "workspace:*", "@types/ws": "^8.18.2" }
+}

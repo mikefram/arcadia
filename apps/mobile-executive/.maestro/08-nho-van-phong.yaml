@@ -1,0 +1,36 @@
+# SPEC 7.2 điều 10, 7.7, 13.7: nhờ Văn phòng. Nút "Nhờ Văn phòng" có ở mọi màn hình và không bao giờ bị ẩn.
+# - Chưa có số (dữ liệu mẫu mặc định): bấm nút mở màn hình nói rõ là chưa có số điện thoại.
+# - Có số: bấm nút GỌI THẲNG (mở trình quay số của máy, ngoài ứng dụng) nên luồng này không đi tiếp trong ứng dụng;
+#   kiểm tay trên máy thật rằng trình quay số hiện đúng số. Muốn thử nhánh này: đặt `officePhone` ở Cài đặt tổ chức.
+# CHƯA CHẠY (máy này không có maestro).
+appId: vn.mihato.dieuhanh
+env:
+  PIN: ${PIN || '271828'}
+---
+- launchApp
+- runFlow: subflows/mo-khoa.yaml
+- assertVisible:
+    id: screen-home
+# Có ở Trang chủ, Trợ lý, Tiến độ
+- assertVisible:
+    id: header-office
+- tapOn:
+    id: nav-progress
+- assertVisible:
+    id: header-office
+- tapOn:
+    id: nav-home
+- tapOn:
+    id: header-office
+- runFlow:
+    when:
+      visible:
+        id: screen-office
+    commands:
+      - assertVisible:
+          id: office-no-phone
+      - assertVisible: Dạ, hệ thống chưa có số điện thoại của Văn phòng.*
+      - tapOn:
+          id: office-understood
+      - assertVisible:
+          id: screen-home

@@ -1,0 +1,30 @@
+# SPEC 10.2, 13.7: it_admin thu hồi thiết bị thì app về màn kích hoạt trong tối đa 1 phút, kèm câu giải thích.
+# scripts/thu-hoi-thiet-bi.js đăng nhập web bằng tài khoản quản trị hệ thống rồi gọi POST /v1/devices/:id/revoke.
+# CHƯA CHẠY.
+appId: vn.mihato.viectoi
+env:
+  PIN: ${PIN || '271828'}
+---
+- launchApp
+- runFlow: subflows/mo-khoa.yaml
+- assertVisible:
+    id: screen-mywork
+- runScript:
+    file: scripts/thu-hoi-thiet-bi.js
+    env:
+      API_URL: ${API_URL}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      DEVICE_USER_NAME: Nguyễn Thu Lan
+# Không chạm gì: app tự hỏi máy chủ mỗi 30 giây, máy chủ nhớ trạng thái thiết bị tối đa 30 giây
+- extendedWaitUntil:
+    visible: Thiết bị cần kích hoạt lại
+    timeout: 60000
+- assertVisible: Thiết bị này đã được thu hồi. Xin liên hệ Văn phòng để nhận mã kích hoạt mới.
+- assertVisible:
+    id: screen-activate
+# Mở lại app vẫn ở màn kích hoạt: phiên trên máy đã xoá
+- stopApp
+- launchApp
+- assertVisible:
+    id: screen-activate

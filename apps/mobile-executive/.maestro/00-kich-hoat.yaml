@@ -1,0 +1,54 @@
+# M0 Kích hoạt (SPEC 7.4, 10.2, 11.2): mở đường dẫn kích hoạt, đặt PIN 6 số hai lần, vào Trang chủ.
+# Mã kích hoạt dùng một lần, lấy ở db/seed/activation-links.txt (dòng "mihato-exec://", không phải "mihato://"). CHƯA CHẠY.
+appId: vn.mihato.dieuhanh
+env:
+  PIN: ${PIN || '271828'}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: mihato-exec://activate?token=${ACTIVATION_TOKEN}&api=${API_URL}
+# Máy chủ nhận mã thì sang bước đặt PIN
+- extendedWaitUntil:
+    visible: Xin đặt mã PIN 6 số
+    timeout: 20000
+- assertVisible:
+    id: screen-activate-pin
+- assertVisible: Kính chào.*
+- runFlow: subflows/nhap-pin.yaml
+- assertVisible: Xin nhập lại mã PIN
+- runFlow: subflows/nhap-pin.yaml
+# Sinh trắc học: máy ảo thường chưa cài vân tay thì chỉ có nút "Tiếp tục"
+- runFlow:
+    when:
+      visible:
+        id: biometric-skip
+    commands:
+      - tapOn:
+          id: biometric-skip
+- runFlow:
+    when:
+      visible:
+        id: biometric-continue
+    commands:
+      - tapOn:
+          id: biometric-continue
+# Thông báo đẩy: để sau
+- runFlow:
+    when:
+      visible:
+        id: push-skip
+    commands:
+      - tapOn:
+          id: push-skip
+- assertVisible: Đã kích hoạt xong
+- tapOn:
+    id: result-understood
+- extendedWaitUntil:
+    visible:
+      id: screen-home
+    timeout: 20000
+- assertVisible: Chào buổi.*
+- assertVisible: Nói với trợ lý
+- assertVisible: Xem tiến độ
+- assertVisible: Việc cần .* quyết

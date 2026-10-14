@@ -1,0 +1,26 @@
+# Luồng Maestro của app nhân viên (SPEC 13.7). CHƯA CHẠY: môi trường dựng mã không có máy ảo iOS hay Android.
+# Các luồng viết theo testID và chữ thật của app; lần chạy đầu trên bản dựng phát triển có thể cần chỉnh bộ chọn.
+#
+# Chuẩn bị:
+#   1. pnpm db:up && pnpm db:migrate && pnpm db:seed -- --links   (dữ liệu mẫu của kịch bản vàng, SPEC 15.4)
+#   2. pnpm dev                                                    (API ở cổng 3100)
+#   3. Bản dựng phát triển của app đã cài trên máy ảo: npx expo run:android hoặc npx expo run:ios
+#
+# Chạy cả bộ (thay mã kích hoạt của "Nguyễn Thu Lan" lấy ở bước 1; máy ảo Android gọi máy chủ qua 10.0.2.2):
+#   maestro test apps/mobile-staff/.maestro \
+#     -e ACTIVATION_TOKEN=<mã> -e API_URL=http://10.0.2.2:3100 -e PIN=271828 -e STEP_ID=<id một việc đang mở của Lan>
+#
+# Luồng 05 cần tài khoản Văn phòng (vanphong@demo.mihato.local) để kiểm ở máy chủ; luồng 06 cần tài khoản quản trị hệ thống:
+#     -e ADMIN_EMAIL=it@demo.mihato.local -e ADMIN_PASSWORD=<mật khẩu in ra khi seed>
+flows:
+  - '*.yaml'
+executionOrder:
+  continueOnFailure: false
+  flowsOrder:
+    - 00-kich-hoat
+    - 01-thong-bao-toi-chi-tiet-viec
+    - 02-xin-them-thoi-gian
+    - 03-bao-vuong
+    - 04-bao-xong-hai-cham
+    - 05-ngoai-tuyen
+    - 06-thu-hoi-thiet-bi

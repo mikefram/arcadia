@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "id": "van-ban-di",
+    "name": "Văn bản đi",
+    "description": "Người soạn chọn các đơn vị phối hợp, mỗi đơn vị góp nội dung, người soạn tổng hợp và xuất một tệp cuối, trưởng đơn vị soát xét, Giám đốc duyệt; văn bản mật hoặc người soạn trình thì Chủ tịch duyệt cuối. Văn thư cấp số và ghi ngày ban hành trước, rồi đóng dấu, đính bản chính đã ký và bằng chứng gửi đi.",
+    "category": "outgoing",
+    "summary": [
+      "Người soạn: nêu trích yếu, nơi nhận, mức khẩn, mức mật, chọn các đơn vị phối hợp, chọn có trình Chủ tịch duyệt cuối hay không, đính tài liệu tham khảo",
+      "Các đơn vị phối hợp: mỗi người góp nội dung phần của mình",
+      "Người soạn: tổng hợp dự thảo và xuất MỘT tệp (Word và PDF) để trình duyệt",
+      "Trưởng đơn vị soạn thảo: soát xét",
+      "Giám đốc duyệt. Văn bản mật, hoặc người soạn chọn trình, thì Chủ tịch duyệt cuối (luôn là người duyệt cuối). Chưa đồng ý thì trả về người soạn",
+      "Văn thư: cấp số và ghi ngày ban hành, người ký, số lượng bản (số có trước khi đóng dấu)",
+      "Văn thư: đóng dấu, đính bản chính đã ký và bằng chứng gửi đi (không bắt buộc), ghi nơi lưu"
+    ]
+  },
+  "definition": {
+    "schemaVersion": 1,
+    "name": "Văn bản đi",
+    "inputs": [
+      { "key": "trichYeu", "label": "Trích yếu nội dung văn bản", "type": "text", "required": true },
+      { "key": "loaiVanBan", "label": "Loại văn bản", "type": "select", "required": true, "options": [
+        { "value": "cong_van", "label": "Công văn" }, { "value": "to_trinh", "label": "Tờ trình" }, { "value": "bao_cao", "label": "Báo cáo" },
+        { "value": "thong_bao", "label": "Thông báo" }, { "value": "quyet_dinh", "label": "Quyết định" }, { "value": "hop_dong", "label": "Hợp đồng, phụ lục" }, { "value": "khac", "label": "Khác" } ] },
+      { "key": "noiNhan", "label": "Nơi nhận", "type": "text", "required": true },
+      { "key": "mucKhan", "label": "Mức khẩn", "type": "select", "required": true, "options": [
+        { "value": "thuong", "label": "Thường" }, { "value": "khan", "label": "Khẩn" }, { "value": "hoa_toc", "label": "Hỏa tốc" } ] },
+      { "key": "mucMat", "label": "Mức mật", "type": "select", "required": true, "options": [
+        { "value": "thuong", "label": "Thường" }, { "value": "mat", "label": "Mật" }, { "value": "toi_mat", "label": "Tối mật" }, { "value": "tuyet_mat", "label": "Tuyệt mật" } ] },
+      { "key": "trinhChuTich", "label": "Trình Chủ tịch duyệt cuối", "type": "select", "options": [
+        { "value": "khong", "label": "Không" }, { "value": "co", "label": "Có" } ],
+        "hint": "Chọn “Có” nếu văn bản thuộc thẩm quyền của Chủ tịch. Văn bản mật, tối mật, tuyệt mật luôn trình Chủ tịch. Chủ tịch là người duyệt cuối, sau Giám đốc." },
+      { "key": "phoiHop", "label": "Đơn vị, cá nhân phối hợp", "type": "users", "required": true, "hint": "Chọn những người sẽ góp nội dung vào dự thảo." },
+      { "key": "hanHoanThanh", "label": "Hạn trình duyệt", "type": "date", "required": true },
+      { "key": "tep", "label": "Tài liệu tham khảo, dự thảo ban đầu", "type": "file", "multiple": true }
+    ],
+    "targetField": "hanHoanThanh",
+    "starters": [ { "kind": "everyone" } ],
+    "layout": {
+      "start": { "x": 0, "y": 160 },
+      "gop": { "x": 220, "y": 160 },
+      "tonghop": { "x": 480, "y": 160 },
+      "soatxet": { "x": 740, "y": 160 },
+      "duyet": { "x": 1000, "y": 160 },
+      "route": { "x": 1260, "y": 160 },
+      "chutich": { "x": 1500, "y": 40 },
+      "capso": { "x": 1760, "y": 160 },
+      "dongdau": { "x": 2020, "y": 160 },
+      "end": { "x": 2280, "y": 160 }
+    },
+    "nodes": [
+      { "id": "start", "type": "start", "label": "Người soạn khởi tạo" },
+      { "id": "gop", "type": "approval", "action": "contribute", "mode": "all", "label": "Góp nội dung", "title": "Góp nội dung vào dự thảo",
+        "approvers": [ { "kind": "form_field", "field": "phoiHop" } ],
+        "due": { "anchor": "run_target", "offset": { "value": -3, "unit": "working_day" } },
+        "form": [
+          { "key": "noiDung", "label": "Nội dung, ý kiến của đơn vị", "type": "longtext", "required": true },
+          { "key": "tep", "label": "Tài liệu kèm theo", "type": "file", "multiple": true }
+        ] },
+      { "id": "tonghop", "type": "task", "label": "Tổng hợp dự thảo", "title": "Tổng hợp dự thảo và xuất tệp trình duyệt",
+        "description": "Gộp nội dung các đơn vị đã góp, viết dự thảo hoàn chỉnh rồi bấm “Xuất tệp Word và PDF” để có một tệp cuối trình người có thẩm quyền.",
+        "assignee": { "kind": "initiator" },
+        "due": { "anchor": "run_target", "offset": { "value": -2, "unit": "working_day" } },
+        "form": [
+          { "key": "duThao", "label": "Nội dung dự thảo sau tổng hợp", "type": "longtext", "required": true },
+          { "key": "kienNghi", "label": "Kiến nghị, đề xuất", "type": "longtext" }
+        ],
+        "compile": {
+          "layout": "official",
+          "title": "{trichYeu}",
+          "required": true,
+          "includeAttachments": true,
+          "sections": [
+            { "heading": "Nội dung dự thảo", "ref": "steps.tonghop.duThao" },
+            { "heading": "Ý kiến góp của các đơn vị", "ref": "responses.gop.noiDung" },
+            { "heading": "Kiến nghị", "ref": "steps.tonghop.kienNghi" }
+          ]
+        } },
+      { "id": "soatxet", "type": "approval", "mode": "any", "label": "Trưởng đơn vị soát xét", "title": "Soát xét dự thảo",
+        "approvers": [ { "kind": "initiator_manager", "level": 1 } ],
+        "due": { "anchor": "run_target", "offset": { "value": -1, "unit": "working_day" } } },
+      { "id": "duyet", "type": "approval", "mode": "any", "label": "Giám đốc duyệt", "title": "Duyệt dự thảo văn bản",
+        "approvers": [ { "kind": "role", "role": "director" } ],
+        "due": { "anchor": "run_target", "offset": { "value": 0, "unit": "working_day" } } },
+      { "id": "route", "type": "condition", "label": "Trình Chủ tịch duyệt cuối?",
+        "branches": [ { "id": "mat", "label": "Văn bản mật, hoặc người soạn chọn trình Chủ tịch", "when": { "op": "or", "args": [
+          { "op": "ne", "left": { "ref": "inputs.mucMat" }, "right": { "value": "thuong" } },
+          { "op": "eq", "left": { "ref": "inputs.trinhChuTich" }, "right": { "value": "co" } } ] } } ] },
+      { "id": "chutich", "type": "approval", "mode": "any", "label": "Chủ tịch duyệt cuối", "finalApproval": true, "title": "Chủ tịch duyệt cuối văn bản",
+        "approvers": [ { "kind": "role", "role": "chairman" } ],
+        "due": { "anchor": "run_target", "offset": { "value": 1, "unit": "working_day" } } },
+      { "id": "capso", "type": "task", "label": "Văn thư cấp số", "title": "Cấp số và ghi ngày ban hành",
+        "description": "Cấp số văn bản và ghi ngày ban hành, người ký, số lượng bản. Số có trước khi đóng dấu để ghi lên bản chính.",
+        "assignee": { "kind": "role", "role": "office_admin" },
+        "due": { "anchor": "activation", "offset": { "value": 1, "unit": "working_day" } },
+        "checklist": [ "Đã ghi số và ngày ban hành lên bản chính" ],
+        "form": [
+          { "key": "soVanBan", "label": "Số văn bản đi", "type": "autonumber", "register": "VBDI", "hint": "Hệ thống tự cấp khi bấm báo xong." },
+          { "key": "ngayBanHanh", "label": "Ngày ban hành", "type": "date", "required": true },
+          { "key": "nguoiKy", "label": "Người ký ban hành", "type": "select", "required": true, "options": [
+            { "value": "chu_tich", "label": "Chủ tịch" }, { "value": "giam_doc", "label": "Giám đốc" }, { "value": "pho_giam_doc", "label": "Phó giám đốc" }, { "value": "khac", "label": "Người khác được ủy quyền" } ] },
+          { "key": "soLuongBan", "label": "Số lượng bản phát hành", "type": "number", "required": true }
+        ] },
+      { "id": "dongdau", "type": "task", "label": "Văn thư đóng dấu và lưu", "title": "Đóng dấu, đính bản chính và lưu hồ sơ",
+        "description": "Đóng dấu lên bản chính đã ký, đính bản scan và bằng chứng gửi đi (nếu có), ghi nơi lưu. Có thể bấm “Xuất tệp Word và PDF” để có tệp in số và ngày ban hành.",
+        "assignee": { "kind": "role", "role": "office_admin" },
+        "due": { "anchor": "activation", "offset": { "value": 1, "unit": "working_day" } },
+        "checklist": [ "Đã đóng dấu", "Đã lưu bản gốc" ],
+        "form": [
+          { "key": "banChinh", "label": "Bản chính đã ký, đóng dấu (bản scan)", "type": "file", "required": true },
+          { "key": "bangChungGuiDi", "label": "Bằng chứng gửi đi", "type": "file", "multiple": true, "hint": "Không bắt buộc. Đính văn bản đã gửi (thư, phiếu gửi, biên nhận) nếu có; hệ thống không gửi văn bản ra ngoài." },
+          { "key": "noiLuu", "label": "Nơi lưu bản gốc", "type": "text" }
+        ],
+        "compile": {
+          "layout": "official",
+          "title": "{trichYeu}",
+          "includeAttachments": false,
+          "sections": [
+            { "heading": "Nội dung văn bản", "ref": "steps.tonghop.duThao" },
+            { "heading": "Kiến nghị", "ref": "steps.tonghop.kienNghi" }
+          ]
+        } },
+      { "id": "end", "type": "end", "label": "Hoàn tất" }
+    ],
+    "edges": [
+      { "id": "e1", "from": "start", "to": "gop" },
+      { "id": "e2", "from": "gop", "to": "tonghop", "outcome": "approved" },
+      { "id": "e3", "from": "tonghop", "to": "soatxet" },
+      { "id": "e4", "from": "soatxet", "to": "duyet", "outcome": "approved" },
+      { "id": "e5", "from": "soatxet", "to": "tonghop", "outcome": "rejected" },
+      { "id": "e6", "from": "duyet", "to": "route", "outcome": "approved" },
+      { "id": "e7", "from": "duyet", "to": "tonghop", "outcome": "rejected" },
+      { "id": "e8", "from": "route", "to": "chutich", "branch": "mat" },
+      { "id": "e9", "from": "route", "to": "capso", "branch": "else" },
+      { "id": "e10", "from": "chutich", "to": "capso", "outcome": "approved" },
+      { "id": "e11", "from": "chutich", "to": "tonghop", "outcome": "rejected" },
+      { "id": "e12", "from": "capso", "to": "dongdau" },
+      { "id": "e13", "from": "dongdau", "to": "end" }
+    ]
+  }
+}

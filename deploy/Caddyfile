@@ -1,0 +1,124 @@
+# Điểm vào duy nhất của hệ thống (SPEC 12.2): TLS tự động, web tĩnh, API, SSE, WebSocket của trợ lý.
+# Đóng gói vào ảnh `web` (Dockerfile). Biến: DOMAIN (tên miền công khai), ACME_EMAIL (nhận thông báo chứng chỉ).
+# KHÔNG bật nhật ký truy cập (directive `log`): URL có thể mang mã dùng một lần (đặt mật khẩu), và nhật ký không được
+# chứa dữ liệu nghiệp vụ (CLAUDE.md luật 6). Kiểm cú pháp: caddy validate --config deploy/Caddyfile --adapter caddyfile
+{
+	email {$ACME_EMAIL}
+	# Giới hạn thời gian đọc để chống kết nối treo (slowloris), vẫn đủ cho tải tệp 20 MB (base64 ≈ 28 MB) qua mạng di động.
+	servers {
+		timeouts {
+			read_header 15s
+			read_body 5m
+			idle 5m
+		}
+	}
+}
+
+{$DOMAIN} {
+	# Phủ cho mọi phản hồi, kể cả API (API tự đặt thêm header riêng bằng helmet; giá trị trùng thì vô hại).
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+
+	# Giao diện nội bộ giữa scribe và API (SPEC 10.7.1): không bao giờ ra Internet. Trả 404 như đường không tồn tại.
+	handle /internal/* {
+		respond 404
+	}
+	handle /internal {
+		respond 404
+	}
+
+	# Kiểm sức khoẻ cho giám sát bên ngoài (SPEC 12.4): chỉ trả {"ok": true|false}, không chi tiết.
+	# /healthz: tiến trình api sống. /readyz: CSDL và nhịp tim worker (mất nhịp 2 phút thì 503). Probe ngoài máy chủ gọi /readyz.
+	handle /healthz {
+		reverse_proxy api:3100 {
+			# Đổi bản không gián đoạn (deploy/scripts/lib.sh): yêu cầu gặp container cũ vừa tắt được thử lại sang bản mới thay vì báo lỗi.
+			lb_try_duration 10s
+			lb_try_interval 250ms
+		}
+	}
+	handle /readyz {
+		reverse_proxy api:3100 {
+			# Đổi bản không gián đoạn (deploy/scripts/lib.sh): yêu cầu gặp container cũ vừa tắt được thử lại sang bản mới thay vì báo lỗi.
+			lb_try_duration 10s
+			lb_try_interval 250ms
+		}
+	}
+
+	# SSE (SPEC 10.8, 12.2): không đệm, không nén, không cắt kết nối khi im lặng giữa hai lần ping.
+	handle /v1/stream* {
+		reverse_proxy api:3100 {
+			# Đổi bản không gián đoạn (deploy/scripts/lib.sh): yêu cầu gặp container cũ vừa tắt được thử lại sang bản mới thay vì báo lỗi.
+			lb_try_duration 10s
+			lb_try_interval 250ms
+			flush_interval -1
+			header_up Accept-Encoding identity
+			header_down Cache-Control "no-cache, no-transform"
+			header_down X-Accel-Buffering "no"
+			transport http {
+				read_timeout 24h
+				response_header_timeout 60s
+			}
+		}
+	}
+
+	# Tải tệp lên: JSON base64 của tệp 20 MiB là khoảng 26,7 MiB (FILE_UPLOAD_BODY_LIMIT); API tự kiểm chính xác, đây là chặn ngoài.
+	handle /v1/files* {
+		request_body {
+			max_size 28MiB
+		}
+		reverse_proxy api:3100 {
+			# Đổi bản không gián đoạn (deploy/scripts/lib.sh): yêu cầu gặp container cũ vừa tắt được thử lại sang bản mới thay vì báo lỗi.
+			lb_try_duration 10s
+			lb_try_interval 250ms
+			transport http {
+				read_timeout 120s
+			}
+		}
+	}
+
+	# Các API còn lại: thân tối đa 2 MiB ở API, chặn ngoài 3 MiB. Chờ đọc phản hồi từ 60 giây (SPEC 12.2).
+	handle /v1/* {
+		request_body {
+			max_size 3MiB
+		}
+		reverse_proxy api:3100 {
+			# Đổi bản không gián đoạn (deploy/scripts/lib.sh): yêu cầu gặp container cũ vừa tắt được thử lại sang bản mới thay vì báo lỗi.
+			lb_try_duration 10s
+			lb_try_interval 250ms
+			transport http {
+				read_timeout 60s
+			}
+		}
+	}
+
+	# WebSocket của trợ lý: wss://<tên miền>/scribe/ws tới scribe. Caddy tự nâng cấp kết nối; không đệm.
+	handle /scribe/ws* {
+		reverse_proxy scribe:3200 {
+			flush_interval -1
+			transport http {
+				read_timeout 24h
+			}
+		}
+	}
+
+	# Web quản trị: tệp tĩnh của Vite. CSP chặt: mọi tài nguyên cùng nguồn; style-src cho phép nội tuyến vì React Flow và Radix đặt style trên phần tử.
+	handle {
+		root * /srv
+		encode zstd gzip
+		header {
+			Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+			X-Frame-Options "DENY"
+			Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		}
+		@hashed path /assets/*
+		header @hashed Cache-Control "public, max-age=31536000, immutable"
+		@pages not path /assets/*
+		header @pages Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}

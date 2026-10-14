@@ -1,0 +1,9 @@
+[Unit]
+Description=Sao lưu CSDL MIHATO mỗi 4 giờ (tuỳ chọn)
+
+[Timer]
+OnCalendar=*-*-* 06,10,14,18,22:15:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

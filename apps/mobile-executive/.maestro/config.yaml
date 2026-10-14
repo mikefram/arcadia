@@ -1,0 +1,35 @@
+# Luồng Maestro của app Chủ tịch (SPEC 13.7). CHƯA CHẠY: môi trường dựng mã không có máy ảo iOS hay Android và không có
+# lệnh `maestro`; mới kiểm được cú pháp YAML. Các luồng viết theo testID và chữ thật của app; lần chạy đầu trên bản dựng
+# phát triển có thể cần chỉnh bộ chọn.
+#
+# Chuẩn bị:
+#   1. pnpm db:up && pnpm db:migrate && pnpm db:seed -- --links   (dữ liệu mẫu của kịch bản vàng, SPEC 15.4)
+#   2. pnpm dev:all                                                (API :3100, worker, scribe :3200, nhà cung cấp giả)
+#   3. Bản dựng phát triển của app đã cài trên máy ảo: npx expo run:android hoặc npx expo run:ios
+#      (iOS và Android hôm nay chưa thu âm được, câu Q15 ở SPEC 10.7.2: app tự mở ô gõ chữ, các luồng dưới đây gõ chữ)
+#   4. Dữ liệu cho luồng 05: một lượt "Đón đoàn" có việc "Kiểm tra tuyến tham quan" của anh Tuấn đã quá hạn và chưa bị
+#      nhắc hôm nay; chạy trong khoảng 07:00 đến 21:00 (từ 21:00 đến 07:00 là giờ yên tĩnh, mọi đề xuất đi thúc bị chặn).
+#      Dữ liệu cho luồng 06: một lượt "Đón đoàn" mà Phương đã báo xong việc lập đề nghị tạm ứng kèm số tiền, để việc duyệt
+#      tới lượt ông Huy. Luồng 03 nghe báo cáo đầu ngày (worker dựng lúc 07:15 ngày làm việc; chưa có thì máy chủ dựng ngay).
+#
+# Chạy cả bộ (máy ảo Android gọi máy chủ qua 10.0.2.2). Luồng 00 đến 05, 07, 08 chạy với mã của "Trần Đức Minh" (chairman),
+# luồng 06 chạy với mã của "Phạm Quang Huy" (deputy, hồ sơ standard), nên chạy riêng:
+#   maestro test apps/mobile-executive/.maestro/00-kich-hoat.yaml  -e ACTIVATION_TOKEN=<mã chairman> -e API_URL=http://10.0.2.2:3100
+#   maestro test apps/mobile-executive/.maestro -e API_URL=http://10.0.2.2:3100 -e PIN=271828 \
+#     -e DEMO_PASSWORD=<mật khẩu in ra khi seed>
+#   (luồng 05 đăng nhập web bằng tuan@demo.mihato.local để kiểm "không có tin nào tới anh Tuấn" sau khi Hoàn tác)
+#   maestro test apps/mobile-executive/.maestro/06-duyet-tam-ung-nang-quyen.yaml -e ACTIVATION_TOKEN=<mã deputy> -e API_URL=http://10.0.2.2:3100 -e PIN=271828
+flows:
+  - '0[0-5]-*.yaml'
+  - '0[7-8]-*.yaml'
+executionOrder:
+  continueOnFailure: false
+  flowsOrder:
+    - 00-kich-hoat
+    - 01-mo-khoa-bang-pin
+    - 02-xem-tien-do
+    - 03-nghe-ban-tin-sang
+    - 04-hoi-tinh-hinh
+    - 05-di-thuc-dong-y-hoan-tac
+    - 07-doi-co-chu
+    - 08-nho-van-phong

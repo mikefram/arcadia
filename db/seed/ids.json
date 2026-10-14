@@ -1,0 +1,35 @@
+{
+  "demo": {
+    "ORG": "01a100ff-b888-7fc6-9829-6caf4e09d750",
+    "users": {
+      "U_CHAIRMAN": "01a100ff-b888-7289-950d-c8ba57efd9f1",
+      "U_DIRECTOR": "01a100ff-b888-7e59-a3bf-cb6d2c3a6e79",
+      "U_HUY": "01a100ff-b888-7fc6-a1e9-4f40293ed209",
+      "U_LAN": "01a100ff-b888-71c7-b56c-07570da9a934",
+      "U_NGOCANH": "01a100ff-b888-74aa-b893-75f26535afd6",
+      "U_TUAN": "01a100ff-b888-70ab-a0a8-5ce4fc7973a3",
+      "U_PHUONG": "01a100ff-b888-7ed9-b1c5-804f933bd88f",
+      "U_HUNG": "01a100ff-b888-7f40-91c6-e701e62059d5",
+      "U_LAN2": "01a100ff-b888-71b9-bd2e-1f0bc992e758",
+      "U_ADMIN": "01a100ff-b888-7e45-a8be-37154eb5ffb4",
+      "U_IT": "01a100ff-b888-7fe0-beb7-95aaa431589d",
+      "U_DESIGNER": "01a100ff-b888-7bb5-a4cc-da0cdcb95c95"
+    },
+    "units": {
+      "chairman": "01a100ff-b888-7ba4-afed-990247000142",
+      "board": "01a100ff-b888-7a95-b2ca-c26f22386b7b",
+      "sales": "01a100ff-b888-7636-8cdd-b444648a268a",
+      "legal": "01a100ff-b888-7534-bfbd-4435470f36d4",
+      "tech": "01a100ff-b888-7254-afe0-3029c78c0b9c",
+      "accounting": "01a100ff-b888-7790-9e04-c7fd4313094e",
+      "office": "01a100ff-b888-7db0-89ae-4e3d13cfbe8c"
+    },
+    "TEMPLATE_DON_DOAN": "01a100ff-b888-71db-8c7f-d40d441a49c5",
+    "TEMPLATE_DON_DOAN_V1": "01a100ff-b888-786a-80d3-cef0bc8aa9da"
+  },
+  "other": {
+    "ORG": "01a100ff-b888-7b72-ad63-db8c46314c6e",
+    "unit": "01a100ff-b888-798a-a941-c43bb540d788",
+    "admin": "01a100ff-b888-7fdc-885e-7428c935ad88"
+  }
+}

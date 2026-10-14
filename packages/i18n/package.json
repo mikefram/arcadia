@@ -1,0 +1,14 @@
+{
+  "name": "@mihato/i18n",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "tsx scripts/check.ts"
+  },
+  "dependencies": { "@mihato/domain": "workspace:*" },
+  "devDependencies": { "@mihato/config": "workspace:*" }
+}

@@ -1,0 +1,40 @@
+# S4 Xin thêm thời gian (SPEC 8.2): chọn hạn mới trên lịch, chọn lý do, Gửi; việc hiện chip "Chờ duyệt".
+# CHƯA CHẠY.
+appId: vn.mihato.viectoi
+env:
+  PIN: ${PIN || '271828'}
+---
+- launchApp
+- runFlow: subflows/mo-khoa.yaml
+- tapOn:
+    id: step-card-.*
+    index: 0
+- assertVisible: Chi tiết việc
+- tapOn:
+    id: action-extension
+- assertVisible: Hạn đề nghị
+# Gửi khi chưa chọn gì: app báo bằng chữ, không gửi
+- tapOn:
+    id: send
+- assertVisible: Xin chọn hạn đề nghị trên lịch.
+# Sang tháng sau (mọi ngày đều sau hạn hiện tại), chọn Thứ Tư đầu tiên: ngày nghỉ bị làm mờ, không chọn được
+- runScript: scripts/ngay-lam-viec.js
+- tapOn:
+    id: calendar-next
+- tapOn:
+    id: calendar-day-${output.workday}
+- assertVisible:
+    id: extension-picked
+- scrollUntilVisible:
+    element:
+      id: choice-waitingInput
+- tapOn:
+    id: choice-waitingInput
+- tapOn:
+    id: send
+- extendedWaitUntil:
+    visible: Chi tiết việc
+    timeout: 10000
+- assertVisible: Chờ duyệt
+- assertNotVisible:
+    id: action-extension

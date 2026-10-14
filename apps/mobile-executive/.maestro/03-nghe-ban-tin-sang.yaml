@@ -1,0 +1,30 @@
+# SPEC 6.7, 7.4 (M1), 13.7: nghe báo cáo tổng hợp đầu ngày. Dải "Nghe báo cáo tổng hợp đầu ngày" ở Trang chủ → máy đọc, chữ hiện cùng lúc → "Dừng đọc".
+# Không cần dựng trước: chưa có báo cáo của hôm nay thì máy chủ dựng ngay khi app mở Trang chủ. CHƯA CHẠY.
+appId: vn.mihato.dieuhanh
+env:
+  PIN: ${PIN || '271828'}
+---
+- launchApp
+- runFlow: subflows/mo-khoa.yaml
+- assertVisible:
+    id: screen-home
+- extendedWaitUntil:
+    visible:
+      id: briefing-listen
+    timeout: 20000
+- assertVisible: Nghe báo cáo tổng hợp đầu ngày
+- tapOn:
+    id: briefing-listen
+# Máy đọc và chữ của bản tin hiện cùng lúc; có nút Dừng đọc
+- extendedWaitUntil:
+    visible:
+      id: briefing-stop
+    timeout: 10000
+- assertVisible: Trợ lý đang đọc báo cáo tổng hợp đầu ngày.
+- assertVisible:
+    id: briefing-text
+- tapOn:
+    id: briefing-stop
+- assertVisible: Nghe báo cáo tổng hợp đầu ngày
+- assertNotVisible:
+    id: briefing-stop

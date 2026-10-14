@@ -1,0 +1,36 @@
+{
+  "description": "Ba tệp âm thanh giả (scripts/make-fixtures.ts) và ba câu mẫu từ kịch bản vàng, để thử công cụ khi chưa có bản ghi thật. Cấu hình fake trả về bản ghi sẵn ở mục fake, có lỗi cố ý: một lỗi dấu (câu 1), một sai tên (câu 2), một sai số tiền (câu 3).",
+  "now": "2026-10-03T09:00:00+07:00",
+  "items": [
+    {
+      "id": "fx-01",
+      "file": "01-tinh-hinh-don-doan.wav",
+      "speaker": "FX01",
+      "age": 63,
+      "region": "Bắc",
+      "reference": "tình hình đón đoàn Nhật thế nào",
+      "entities": { "people": [], "amountsVnd": [], "dates": [] },
+      "fake": { "final": "tinh hình đón đoàn Nhật thế nào", "interim": ["tinh hình"], "confidence": 0.93 }
+    },
+    {
+      "id": "fx-02",
+      "file": "02-di-thuc-anh-tuan.wav",
+      "speaker": "FX02",
+      "age": 67,
+      "region": "Bắc",
+      "reference": "đi thúc anh Tuấn việc kiểm tra tuyến tham quan",
+      "entities": { "people": ["Tuấn"], "amountsVnd": [], "dates": [] },
+      "fake": { "final": "đi thúc anh Tú việc kiểm tra tuyến tham quan", "interim": ["đi thúc anh"], "confidence": 0.88 }
+    },
+    {
+      "id": "fx-03",
+      "file": "03-duyet-tam-ung.wav",
+      "speaker": "FX01",
+      "age": 63,
+      "region": "Bắc",
+      "reference": "duyệt đề nghị tạm ứng hai chục triệu cho chị Phương trước thứ Tư ngày bảy tháng mười",
+      "entities": { "people": ["Phương"], "amountsVnd": [20000000], "dates": ["2026-10-07"] },
+      "fake": { "final": "duyệt đề nghị tạm ứng hai chục nghìn cho chị Phương trước thứ Tư ngày bảy tháng mười", "confidence": 0.9 }
+    }
+  ]
+}

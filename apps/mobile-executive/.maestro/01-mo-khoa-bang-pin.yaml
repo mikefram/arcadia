@@ -1,0 +1,43 @@
+# SPEC 7.4 (M0), 13.7: mở khoá bằng PIN (sinh trắc học cần máy thật; ở máy ảo luôn là PIN).
+# Mở lại app thì hiện màn khoá. Nhập sai một lần: câu báo nhận về phía hệ thống, không nói người dùng sai. Rồi nhập đúng. CHƯA CHẠY.
+appId: vn.mihato.dieuhanh
+env:
+  PIN: ${PIN || '271828'}
+  WRONG_PIN: ${WRONG_PIN || '314159'}
+---
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: lock-screen
+    timeout: 15000
+- assertVisible: Xin .* nhập mã PIN
+- assertVisible: Mã gồm 6 chữ số
+# Có nút Nhờ Văn phòng ngay ở màn khoá (SPEC 7.2 điều 10)
+- assertVisible:
+    id: lock-office
+# Nhập sai một lần
+- evalScript: ${output.pin = WRONG_PIN.split('')}
+- tapOn:
+    id: pin-key-${output.pin[0]}
+- tapOn:
+    id: pin-key-${output.pin[1]}
+- tapOn:
+    id: pin-key-${output.pin[2]}
+- tapOn:
+    id: pin-key-${output.pin[3]}
+- tapOn:
+    id: pin-key-${output.pin[4]}
+- tapOn:
+    id: pin-key-${output.pin[5]}
+- assertVisible: Dạ, mã PIN chưa khớp.*
+- assertVisible:
+    id: lock-screen
+# Nhập đúng
+- runFlow: subflows/nhap-pin.yaml
+- extendedWaitUntil:
+    visible:
+      id: screen-home
+    timeout: 15000
+- assertNotVisible:
+    id: lock-screen

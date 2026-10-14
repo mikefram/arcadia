@@ -1,0 +1,8 @@
+# Gõ một câu vào ô của trợ lý rồi bấm Gửi. Biến: CAU (câu cần gửi). CHƯA CHẠY.
+appId: vn.mihato.dieuhanh
+---
+- tapOn:
+    id: assistant-input
+- inputText: ${CAU}
+- tapOn:
+    id: assistant-send

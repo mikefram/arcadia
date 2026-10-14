@@ -1,0 +1,133 @@
+{
+  "meta": {
+    "id": "van-ban-den",
+    "name": "Văn bản đến",
+    "description": "Văn thư vào sổ văn bản đến kèm bản scan và đóng dấu ĐẾN, Giám đốc cho ý kiến chỉ đạo (văn bản mật thì Chủ tịch xem trước): chỉ để biết thì lưu, không thuộc thẩm quyền hoặc vào sổ nhầm thì trả lại văn thư, còn lại thì phân công người xử lý; các đơn vị xử lý, người chủ trì xuất phiếu xử lý, văn thư lưu hồ sơ.",
+    "category": "incoming",
+    "summary": [
+      "Văn thư: vào sổ (số đến tự động), nhập trích yếu, nơi gửi, loại, mức khẩn, mức mật, hạn xử lý, đính kèm bản scan; đóng dấu ĐẾN, ghi số đến và ngày đến lên bản giấy",
+      "Văn bản mật: Chủ tịch xem và cho ý kiến trước (ý kiến đưa vào phiếu xử lý)",
+      "Giám đốc: cho ý kiến chỉ đạo và chọn hướng xử lý: giao xử lý, chỉ để biết (lưu), hoặc trả lại văn thư",
+      "Giám đốc (giao xử lý): chọn người chủ trì và người phối hợp",
+      "Người chủ trì và người phối hợp: mỗi người gửi kết quả xử lý của mình",
+      "Người chủ trì: tổng hợp, xuất Phiếu xử lý văn bản đến (Word và PDF, bắt buộc trước khi báo xong)",
+      "Văn thư: lưu hồ sơ"
+    ]
+  },
+  "definition": {
+    "schemaVersion": 1,
+    "name": "Văn bản đến",
+    "inputs": [
+      { "key": "soDen", "label": "Số đến", "type": "autonumber", "register": "VBDEN", "hint": "Hệ thống tự cấp khi vào sổ. Sau khi vào sổ, đóng dấu ĐẾN, ghi số đến và ngày đến lên văn bản giấy." },
+      { "key": "ngayDen", "label": "Ngày đến", "type": "date", "hint": "Ngày văn bản thực tế đến cơ quan. Bỏ trống nếu là hôm nay." },
+      { "key": "trichYeu", "label": "Trích yếu nội dung", "type": "text", "required": true },
+      { "key": "noiGui", "label": "Cơ quan, đơn vị gửi", "type": "text", "required": true },
+      { "key": "soKyHieu", "label": "Số, ký hiệu ghi trên văn bản", "type": "text" },
+      { "key": "ngayVanBan", "label": "Ngày ghi trên văn bản", "type": "date" },
+      { "key": "loaiVanBan", "label": "Loại văn bản", "type": "select", "required": true, "options": [
+        { "value": "cong_van", "label": "Công văn" }, { "value": "quyet_dinh", "label": "Quyết định" }, { "value": "thong_bao", "label": "Thông báo" },
+        { "value": "bao_cao", "label": "Báo cáo" }, { "value": "to_trinh", "label": "Tờ trình" }, { "value": "hop_dong", "label": "Hợp đồng, phụ lục" }, { "value": "khac", "label": "Khác" } ] },
+      { "key": "mucKhan", "label": "Mức khẩn", "type": "select", "required": true, "options": [
+        { "value": "thuong", "label": "Thường" }, { "value": "khan", "label": "Khẩn" }, { "value": "hoa_toc", "label": "Hỏa tốc" } ] },
+      { "key": "mucMat", "label": "Mức mật", "type": "select", "required": true, "options": [
+        { "value": "thuong", "label": "Thường" }, { "value": "mat", "label": "Mật" }, { "value": "toi_mat", "label": "Tối mật" }, { "value": "tuyet_mat", "label": "Tuyệt mật" } ] },
+      { "key": "hanXuLy", "label": "Hạn xử lý", "type": "date", "required": true },
+      { "key": "tep", "label": "Bản scan văn bản và tài liệu kèm theo", "type": "file", "multiple": true, "required": true }
+    ],
+    "targetField": "hanXuLy",
+    "starters": [ { "kind": "role", "role": "office_admin" } ],
+    "layout": {
+      "start": { "x": 0, "y": 200 },
+      "route": { "x": 220, "y": 200 },
+      "chutich": { "x": 460, "y": 60 },
+      "giamdoc": { "x": 700, "y": 200 },
+      "huong": { "x": 940, "y": 200 },
+      "phancong": { "x": 1180, "y": 200 },
+      "trala": { "x": 1180, "y": 400 },
+      "xuly": { "x": 1440, "y": 200 },
+      "tonghop": { "x": 1700, "y": 200 },
+      "luu": { "x": 1960, "y": 200 },
+      "end": { "x": 2200, "y": 200 }
+    },
+    "nodes": [
+      { "id": "start", "type": "start", "label": "Văn thư vào sổ" },
+      { "id": "route", "type": "condition", "label": "Văn bản mật?",
+        "branches": [ { "id": "mat", "label": "Mật, tối mật, tuyệt mật", "when": { "op": "ne", "left": { "ref": "inputs.mucMat" }, "right": { "value": "thuong" } } } ] },
+      { "id": "chutich", "type": "approval", "action": "contribute", "mode": "any", "label": "Chủ tịch xem văn bản mật", "title": "Xem văn bản mật và cho ý kiến",
+        "approvers": [ { "kind": "role", "role": "chairman" } ],
+        "due": { "anchor": "activation", "offset": { "value": 1, "unit": "working_day" } },
+        "form": [ { "key": "yKienChuTich", "label": "Ý kiến của Chủ tịch (không bắt buộc)", "type": "longtext" } ] },
+      { "id": "giamdoc", "type": "task", "label": "Giám đốc cho ý kiến", "title": "Cho ý kiến chỉ đạo và chọn hướng xử lý",
+        "assignee": { "kind": "role", "role": "director" },
+        "due": { "anchor": "activation", "offset": { "value": 1, "unit": "working_day" } },
+        "form": [
+          { "key": "yKien", "label": "Ý kiến chỉ đạo của Giám đốc", "type": "longtext", "required": true },
+          { "key": "huongXuLy", "label": "Hướng xử lý", "type": "select", "required": true, "options": [
+            { "value": "giao_xu_ly", "label": "Giao xử lý" }, { "value": "de_biet", "label": "Chỉ để biết, lưu" }, { "value": "tra_lai", "label": "Trả lại văn thư" } ],
+            "hint": "Giao xử lý: bước sau chọn người chủ trì. Chỉ để biết: lưu hồ sơ, không xử lý. Trả lại văn thư: vào sổ nhầm hoặc không thuộc thẩm quyền." }
+        ] },
+      { "id": "huong", "type": "condition", "label": "Hướng xử lý?",
+        "branches": [
+          { "id": "de_biet", "label": "Chỉ để biết, lưu", "when": { "op": "eq", "left": { "ref": "steps.giamdoc.result.huongXuLy" }, "right": { "value": "de_biet" } } },
+          { "id": "tra_lai", "label": "Trả lại văn thư", "when": { "op": "eq", "left": { "ref": "steps.giamdoc.result.huongXuLy" }, "right": { "value": "tra_lai" } } } ] },
+      { "id": "phancong", "type": "task", "label": "Giám đốc phân công", "title": "Chọn người chủ trì và người phối hợp xử lý",
+        "assignee": { "kind": "role", "role": "director" },
+        "due": { "anchor": "activation", "offset": { "value": 1, "unit": "working_day" } },
+        "form": [
+          { "key": "chuTri", "label": "Người chủ trì xử lý", "type": "user", "required": true },
+          { "key": "phoiHop", "label": "Người phối hợp", "type": "users" }
+        ] },
+      { "id": "trala", "type": "task", "label": "Văn thư nhận lại", "title": "Nhận lại văn bản Giám đốc trả về",
+        "description": "Giám đốc trả lại văn bản (vào sổ nhầm hoặc không thuộc thẩm quyền). Ghi cách đã xử lý: chuyển nơi khác, trả cơ quan gửi, hay sửa sổ.",
+        "assignee": { "kind": "role", "role": "office_admin" },
+        "due": { "anchor": "activation", "offset": { "value": 1, "unit": "working_day" } },
+        "form": [ { "key": "cachXuLy", "label": "Cách đã xử lý", "type": "longtext", "required": true } ] },
+      { "id": "xuly", "type": "approval", "action": "contribute", "mode": "all", "label": "Xử lý văn bản", "title": "Xử lý văn bản và gửi kết quả phần việc của mình",
+        "approvers": [ { "kind": "step_field", "node": "phancong", "field": "chuTri" }, { "kind": "step_field", "node": "phancong", "field": "phoiHop" } ],
+        "due": { "anchor": "run_target", "offset": { "value": -1, "unit": "working_day" } },
+        "form": [
+          { "key": "ketQua", "label": "Kết quả xử lý, ý kiến của đơn vị", "type": "longtext", "required": true },
+          { "key": "tep", "label": "Tài liệu kèm theo", "type": "file", "multiple": true }
+        ] },
+      { "id": "tonghop", "type": "task", "label": "Tổng hợp phiếu xử lý", "title": "Tổng hợp kết quả và xuất phiếu xử lý",
+        "assignee": { "kind": "step_field", "node": "phancong", "field": "chuTri" },
+        "due": { "anchor": "run_target", "offset": { "value": 0, "unit": "working_day" } },
+        "form": [ { "key": "deXuat", "label": "Đề xuất, kiến nghị", "type": "longtext", "required": true } ],
+        "compile": {
+          "layout": "report",
+          "title": "Phiếu xử lý văn bản đến: {trichYeu}",
+          "required": true,
+          "includeAttachments": true,
+          "sections": [
+            { "heading": "Thông tin văn bản", "ref": "inputs.trichYeu" },
+            { "heading": "Nơi gửi", "ref": "inputs.noiGui" },
+            { "heading": "Ý kiến của Chủ tịch", "ref": "responses.chutich.yKienChuTich" },
+            { "heading": "Ý kiến chỉ đạo của Giám đốc", "ref": "steps.giamdoc.yKien" },
+            { "heading": "Kết quả xử lý của từng người", "ref": "responses.xuly.ketQua" },
+            { "heading": "Đề xuất, kiến nghị", "ref": "steps.tonghop.deXuat" }
+          ]
+        } },
+      { "id": "luu", "type": "task", "label": "Văn thư lưu hồ sơ", "title": "Lưu hồ sơ văn bản đến",
+        "assignee": { "kind": "role", "role": "office_admin" },
+        "due": { "anchor": "activation", "offset": { "value": 2, "unit": "working_day" } },
+        "checklist": [ "Đã kiểm tra tình trạng trên sổ", "Đã lưu bản gốc, và phiếu xử lý nếu có" ],
+        "form": [ { "key": "noiLuu", "label": "Nơi lưu hồ sơ", "type": "text" } ] },
+      { "id": "end", "type": "end", "label": "Hoàn tất" }
+    ],
+    "edges": [
+      { "id": "e1", "from": "start", "to": "route" },
+      { "id": "e2", "from": "route", "to": "chutich", "branch": "mat" },
+      { "id": "e3", "from": "route", "to": "giamdoc", "branch": "else" },
+      { "id": "e4", "from": "chutich", "to": "giamdoc", "outcome": "approved" },
+      { "id": "e5", "from": "giamdoc", "to": "huong" },
+      { "id": "e6", "from": "huong", "to": "luu", "branch": "de_biet" },
+      { "id": "e7", "from": "huong", "to": "trala", "branch": "tra_lai" },
+      { "id": "e8", "from": "huong", "to": "phancong", "branch": "else" },
+      { "id": "e9", "from": "phancong", "to": "xuly" },
+      { "id": "e10", "from": "xuly", "to": "tonghop", "outcome": "approved" },
+      { "id": "e11", "from": "tonghop", "to": "luu" },
+      { "id": "e12", "from": "luu", "to": "end" },
+      { "id": "e13", "from": "trala", "to": "end" }
+    ]
+  }
+}

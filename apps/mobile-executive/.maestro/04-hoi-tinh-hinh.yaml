@@ -1,0 +1,24 @@
+# SPEC 6.6, 7.4 (M2), 13.7: hỏi tình hình bằng chữ (iOS và Android hôm nay chưa thu âm được). Câu trả lời có số liệu lấy từ
+# công cụ đọc (không do trợ lý tự nghĩ ra): "n trên m việc đã xong". CHƯA CHẠY.
+appId: vn.mihato.dieuhanh
+env:
+  PIN: ${PIN || '271828'}
+---
+- launchApp
+- runFlow: subflows/mo-khoa.yaml
+- runFlow: subflows/vao-tro-ly.yaml
+- runFlow:
+    file: subflows/gui-cau-hoi.yaml
+    env:
+      CAU: tình hình đón đoàn Nhật
+# Chữ vừa gửi hiện cỡ lớn; trợ lý xử lý rồi trả lời bằng chữ
+- assertVisible: Câu vừa gửi
+- extendedWaitUntil:
+    visible:
+      id: assistant-reply-text
+    timeout: 40000
+- assertVisible: Trợ lý trả lời
+- assertVisible: '.*[0-9]+ trên [0-9]+ việc đã xong.*'
+# Không có đề xuất nào mở ra: câu hỏi chỉ đọc
+- assertNotVisible:
+    id: screen-review

@@ -1,0 +1,9 @@
+# Khoá và chứng chỉ phát hành không bao giờ vào kho (docs/ops/mobile-release.md). EAS giữ chứng chỉ iOS và khoá ký Android.
+secrets/
+credentials.json
+*.p8
+*.p12
+*.jks
+*.keystore
+*.mobileprovision
+google-play-service-account*.json

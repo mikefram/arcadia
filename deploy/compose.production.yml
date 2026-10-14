@@ -1,0 +1,292 @@
+# Hệ thống production trên MỘT máy chủ Linux (SPEC 12.1 phương án B cho VRG, 12.2). KHÔNG dùng docker-compose.yml ở gốc repo
+# cho máy thật. Mọi bí mật đọc từ tệp môi trường NGOÀI repo (mặc định /etc/mihato/production.env, quyền 600, chủ root);
+# mẫu ở deploy/production.env.example. Chạy bằng deploy/scripts/deploy.sh, không gõ tay:
+#   docker compose --env-file /etc/mihato/production.env -f deploy/compose.production.yml up -d
+#
+# Mạng: `db` là mạng nội bộ (internal: true, không ra Internet) chỉ có postgres, api, worker, migrate, ops-alert;
+# `app` có đường ra Internet cho api, worker, scribe (Expo, Deepgram, Anthropic, Vbee) và caddy. Chỉ caddy publish cổng (80, 443).
+# Postgres, api, scribe, worker KHÔNG publish cổng (ufw chỉ mở 22, 80, 443).
+#
+# Kho tệp đính kèm (volume `files`) dùng chung api và worker (worker dọn tệp mồ côi trên đĩa), cùng đường dẫn /data/files.
+# CHỈ MỘT bản api (dùng chung volume đĩa cục bộ); muốn chạy hai bản api thì phải chuyển sang kho S3 trước (docs/DECISIONS.md, Q9).
+name: mihato
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "50m", max-file: "5" }
+
+# Cấu hình dùng chung của mọi dịch vụ Node. Địa chỉ công khai suy ra từ DOMAIN để không thể lệch nhau.
+x-base-env: &base-env
+  NODE_ENV: production
+  WEB_ORIGIN: https://${DOMAIN:?đặt DOMAIN trong production.env}
+  PUBLIC_API_URL: https://${DOMAIN}
+  PUBLIC_SCRIBE_WS_URL: wss://${DOMAIN}/scribe/ws
+  AUTH_SECRET: ${AUTH_SECRET:?đặt AUTH_SECRET trong production.env}
+  INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?đặt INTERNAL_SERVICE_TOKEN trong production.env}
+  FILE_STORAGE_DIR: /data/files
+  STT_PROVIDER: ${STT_PROVIDER:-}
+  LLM_PROVIDER: ${LLM_PROVIDER:-}
+  TTS_PROVIDER: ${TTS_PROVIDER:-}
+  PUSH_PROVIDER: ${PUSH_PROVIDER:-}
+  EMAIL_PROVIDER: ${EMAIL_PROVIDER:-}
+  RESEND_API_KEY: ${RESEND_API_KEY:-}
+  EMAIL_FROM: ${EMAIL_FROM:-}
+  SECRETS_ENCRYPTION_KEY: ${SECRETS_ENCRYPTION_KEY:-}
+  ALLOW_FAKE_PROVIDERS: ${ALLOW_FAKE_PROVIDERS:-false}
+  SCRIBE_ENABLED: ${SCRIBE_ENABLED:-true}
+  ENFORCE_MFA: ${ENFORCE_MFA:-true}
+  TRUST_PROXY: ${TRUST_PROXY:-1}
+
+x-node: &node
+  image: ${SERVER_IMAGE:-ghcr.io/mihato-tech/dieuhanh-server}:${TAG:?đặt TAG (deploy.sh đặt sẵn)}
+  restart: unless-stopped
+  read_only: true
+  tmpfs:
+    - /tmp
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  logging: *logging
+  stop_grace_period: 30s
+
+services:
+  postgres:
+    image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?đặt POSTGRES_PASSWORD trong production.env}
+      POSTGRES_DB: postgres
+      APP_DB: ${APP_DB:-mihato}
+      APP_OWNER_PASSWORD: ${APP_OWNER_PASSWORD:?}
+      APP_USER_PASSWORD: ${APP_USER_PASSWORD:?}
+      APP_SCAN_PASSWORD: ${APP_SCAN_PASSWORD:?}
+    # Nhật ký CSDL không được chứa dữ liệu nghiệp vụ: không ghi câu lệnh lỗi, không ghi chi tiết (CLAUDE.md luật 6).
+    command:
+      - postgres
+      - -c
+      - shared_buffers=1GB
+      - -c
+      - effective_cache_size=3GB
+      - -c
+      - max_connections=100
+      - -c
+      - log_min_error_statement=panic
+      - -c
+      - log_error_verbosity=terse
+    shm_size: 256mb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init-roles.sh:/docker-entrypoint-initdb.d/00-roles.sh:ro
+    networks: [db]
+    mem_limit: 2g
+    cpus: 2
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ${APP_DB:-mihato}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  # Chạy một lần mỗi lần triển khai: CHỈ migration. Không bao giờ seed (seed từ chối ở production).
+  migrate:
+    <<: *node
+    restart: "no"
+    command: ["node", "--import", "tsx", "packages/backend/scripts/migrate.ts"]
+    environment:
+      <<: *base-env
+      DATABASE_URL_OWNER: postgres://app_owner:${APP_OWNER_PASSWORD}@postgres:5432/${APP_DB:-mihato}
+      # Đổi bản không gián đoạn: migration chạy khi bản cũ vẫn phục vụ nên KHÔNG được xếp hàng chờ khoá (một lệnh chờ khoá sẽ chặn mọi
+      # truy vấn đến sau nó). Không lấy được khoá trong 10 giây thì migration thất bại, deploy.sh dừng và bản cũ vẫn chạy nguyên.
+      PGOPTIONS: -c lock_timeout=10s -c statement_timeout=15min
+    healthcheck: { disable: true }
+    networks: [db]
+    depends_on:
+      postgres: { condition: service_healthy }
+    mem_limit: 512m
+
+  api:
+    <<: *node
+    command: ["node", "--import", "tsx", "apps/api/src/main.ts"]
+    environment:
+      <<: *base-env
+      PORT: 3100
+      DATABASE_URL: postgres://app_user:${APP_USER_PASSWORD}@postgres:5432/${APP_DB:-mihato}
+      SCRIBE_JWT_PRIVATE_KEY: ${SCRIBE_JWT_PRIVATE_KEY:-}
+      CORS_EXTRA_ORIGINS: ${CORS_EXTRA_ORIGINS:-}
+    volumes:
+      - files:/data/files
+    networks: [db, app]
+    expose: ["3100"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      # Dùng /healthz (tiến trình còn sống), KHÔNG dùng /readyz: worker chết không được kéo api khỏi vòng phục vụ.
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3100/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    mem_limit: 1g
+    cpus: 1.5
+
+  worker:
+    <<: *node
+    command: ["node", "--import", "tsx", "apps/worker/src/main.ts"]
+    stop_grace_period: 35s
+    environment:
+      <<: *base-env
+      DATABASE_URL: postgres://app_user:${APP_USER_PASSWORD}@postgres:5432/${APP_DB:-mihato}
+      DATABASE_URL_SCAN: postgres://app_scan:${APP_SCAN_PASSWORD}@postgres:5432/${APP_DB:-mihato}
+      EXPO_ACCESS_TOKEN: ${EXPO_ACCESS_TOKEN:-}
+    volumes:
+      - files:/data/files
+    networks: [db, app]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "node", "deploy/ops/worker-health.mjs"]
+      interval: 30s
+      timeout: 8s
+      retries: 3
+      start_period: 40s
+    mem_limit: 512m
+    cpus: 1
+
+  scribe:
+    <<: *node
+    command: ["node", "--import", "tsx", "apps/scribe/src/main.ts"]
+    environment:
+      NODE_ENV: production
+      PORT: 3200
+      SCRIBE_PORT: 3200
+      API_INTERNAL_URL: http://api:3100
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
+      ALLOW_FAKE_PROVIDERS: ${ALLOW_FAKE_PROVIDERS:-false}
+      STT_PROVIDER: ${STT_PROVIDER:-}
+      LLM_PROVIDER: ${LLM_PROVIDER:-}
+      TTS_PROVIDER: ${TTS_PROVIDER:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      DEEPGRAM_API_KEY: ${DEEPGRAM_API_KEY:-}
+      DEEPGRAM_KEYTERMS: ${DEEPGRAM_KEYTERMS:-off}
+      VBEE_APP_ID: ${VBEE_APP_ID:-}
+      VBEE_TOKEN: ${VBEE_TOKEN:-}
+      VBEE_VOICE: ${VBEE_VOICE:-}
+      LLM_MODEL: ${LLM_MODEL:-claude-sonnet-5-5}
+      LLM_EFFORT: ${LLM_EFFORT:-low}
+      VOICE_CONFIRM_MIN_CONFIDENCE: ${VOICE_CONFIRM_MIN_CONFIDENCE:-0.8}
+      STT_UTTERANCE_END_MS: ${STT_UTTERANCE_END_MS:-1300}
+    networks: [app]
+    expose: ["3200"]
+    depends_on:
+      api: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3200/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    mem_limit: 1g
+    cpus: 1
+
+  # Điểm vào duy nhất: TLS tự động, web tĩnh, chuyển tiếp API, SSE và WebSocket (deploy/Caddyfile, đóng gói trong ảnh web).
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/mihato-tech/dieuhanh-web}:${TAG}
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?đặt ACME_EMAIL trong production.env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [app]
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    depends_on:
+      api: { condition: service_started }
+      scribe: { condition: service_started }
+    mem_limit: 256m
+    cpus: 1
+
+  # Cảnh báo SPEC 12.4 bằng truy vấn SQL (deploy/ops/ops-alert.mjs). Chỉ đọc; gửi webhook hoặc Telegram nếu có cấu hình.
+  ops-alert:
+    <<: *node
+    command: ["node", "deploy/ops/ops-alert.mjs"]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://app_user:${APP_USER_PASSWORD}@postgres:5432/${APP_DB:-mihato}
+      DATABASE_URL_SCAN: postgres://app_scan:${APP_SCAN_PASSWORD}@postgres:5432/${APP_DB:-mihato}
+      DOMAIN: ${DOMAIN}
+      TLS_CHECK_ADDR: web:443
+      DISK_PATH: /data/files
+      BACKUP_STATUS_FILE: /backup/status.json
+      OPS_STATE_FILE: /var/lib/ops-alert/state.json
+      ALERT_PREFIX: ${ALERT_PREFIX:-[MIHATO]}
+      ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
+      ALERT_TELEGRAM_BOT_TOKEN: ${ALERT_TELEGRAM_BOT_TOKEN:-}
+      ALERT_TELEGRAM_CHAT_ID: ${ALERT_TELEGRAM_CHAT_ID:-}
+    volumes:
+      - files:/data/files:ro
+      - ${BACKUP_DIR:-/var/backups/mihato}:/backup:ro
+      - opsstate:/var/lib/ops-alert
+    networks: [db, app]
+    healthcheck: { disable: true }
+    depends_on:
+      postgres: { condition: service_healthy }
+    mem_limit: 128m
+    cpus: 0.25
+
+  # Công cụ một lần (profile tools): kiểm cấu hình đầy đủ trước khi triển khai. Chứa hợp của mọi biến nên chỉ chạy tay bằng
+  # deploy/scripts/check-env.sh, không chạy thường trực.
+  check-env:
+    <<: *node
+    profiles: ["tools"]
+    restart: "no"
+    command: ["node", "--import", "tsx", "packages/backend/scripts/check-env.ts"]
+    environment:
+      <<: *base-env
+      DATABASE_URL: postgres://app_user:${APP_USER_PASSWORD}@postgres:5432/${APP_DB:-mihato}
+      DATABASE_URL_OWNER: postgres://app_owner:${APP_OWNER_PASSWORD}@postgres:5432/${APP_DB:-mihato}
+      DATABASE_URL_SCAN: postgres://app_scan:${APP_SCAN_PASSWORD}@postgres:5432/${APP_DB:-mihato}
+      SCRIBE_JWT_PRIVATE_KEY: ${SCRIBE_JWT_PRIVATE_KEY:-}
+      CORS_EXTRA_ORIGINS: ${CORS_EXTRA_ORIGINS:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      DEEPGRAM_API_KEY: ${DEEPGRAM_API_KEY:-}
+      VBEE_APP_ID: ${VBEE_APP_ID:-}
+      VBEE_TOKEN: ${VBEE_TOKEN:-}
+    volumes:
+      - files:/data/files
+    healthcheck: { disable: true }
+    networks: [db]
+    mem_limit: 256m
+
+networks:
+  db:
+    internal: true
+  app: {}
+
+volumes:
+  pgdata:
+    name: mihato_pgdata
+  files:
+    name: mihato_files
+  caddy_data:
+    name: mihato_caddy_data
+  caddy_config:
+    name: mihato_caddy_config
+  opsstate:
+    name: mihato_opsstate

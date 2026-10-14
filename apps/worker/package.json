@@ -1,0 +1,26 @@
+{
+  "name": "@mihato/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/main.ts",
+    "start": "tsx src/main.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@mihato/backend": "workspace:*",
+    "@mihato/domain": "workspace:*",
+    "@mihato/i18n": "workspace:*",
+    "@mihato/providers": "workspace:*",
+    "@mihato/workflow-engine": "workspace:*",
+    "drizzle-orm": "^0.45.3",
+    "pg": "^8.23.1",
+    "tsx": "^4.23.15"
+  },
+  "devDependencies": {
+    "@mihato/config": "workspace:*",
+    "@types/pg": "^8.23.1"
+  }
+}

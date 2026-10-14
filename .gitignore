@@ -1,0 +1,20 @@
+node_modules/
+dist/
+.turbo/
+.expo/
+*.log
+.env
+.env.*
+!.env.example
+coverage/
+playwright-report/
+test-results/
+.DS_Store
+# Mã kích hoạt và bản ghi âm không bao giờ vào repo (SPEC 13.6, 15.4)
+db/seed/activation-links.txt
+recordings/
+# Tệp đính kèm lưu trên đĩa ở môi trường phát triển và test
+storage/
+storage-test/
+apps/*/ios/
+apps/*/android/

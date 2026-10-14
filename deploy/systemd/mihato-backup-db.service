@@ -1,0 +1,11 @@
+# Sao lưu CSDL dày hơn trong ngày (không kèm tệp) để thu nhỏ RPO khi chưa bật WAL (docs/ops/backup.md).
+[Unit]
+Description=MIHATO sao lưu CSDL giữa ngày
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mihato/deploy/scripts/backup.sh --db-only
+Nice=10
+IOSchedulingClass=idle

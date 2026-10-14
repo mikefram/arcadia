@@ -1,0 +1,16 @@
+# Cập nhật tự động: ảnh gốc (ghim digest trong Dockerfile và compose), GitHub Actions, npm (gộp theo tuần).
+version: 2
+updates:
+  - package-ecosystem: docker
+    directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]

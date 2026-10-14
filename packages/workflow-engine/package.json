@@ -1,0 +1,14 @@
+{
+  "name": "@mihato/workflow-engine",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:nightly": "FC_NUM_RUNS=10000 vitest run"
+  },
+  "dependencies": { "@mihato/domain": "workspace:*" },
+  "devDependencies": { "@mihato/config": "workspace:*", "fast-check": "^4.10.2" }
+}

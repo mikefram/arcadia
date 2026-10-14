@@ -1,0 +1,25 @@
+{
+  "name": "@mihato/domain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./calendar": "./src/calendar/index.ts",
+    "./lunar": "./src/lunar/index.ts",
+    "./vi-normalize": "./src/vi-normalize/index.ts",
+    "./vi-speak": "./src/vi-speak/index.ts",
+    "./nudge": "./src/nudge/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@mihato/config": "workspace:*",
+    "fast-check": "^4.10.2"
+  }
+}

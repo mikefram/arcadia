@@ -1,0 +1,13 @@
+# Sao lưu đầy đủ (CSDL + tệp đính kèm). Cài: sudo cp deploy/systemd/mihato-backup.* /etc/systemd/system/ && sudo systemctl daemon-reload
+# && sudo systemctl enable --now mihato-backup.timer. Sửa đường dẫn /opt/mihato nếu repo không nằm ở đó.
+[Unit]
+Description=MIHATO sao lưu CSDL và kho tệp
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mihato/deploy/scripts/backup.sh
+# Cấu hình sao lưu (AGE_RECIPIENT, BACKUP_RSYNC_TARGET...) nằm trong /etc/mihato/production.env; script đọc trực tiếp.
+Nice=10
+IOSchedulingClass=idle

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "name": "Đón đoàn nhà đầu tư thăm KCN",
+  "inputs": [
+    { "key": "delegation", "label": "Tên đoàn", "type": "text", "required": true },
+    { "key": "visitDate", "label": "Ngày đoàn đến", "type": "date", "required": true }
+  ],
+  "targetField": "visitDate",
+  "layout": {
+    "start": { "x": 0, "y": 160 },
+    "s1": { "x": 220, "y": 60 },
+    "s4": { "x": 220, "y": 300 },
+    "s2": { "x": 500, "y": 0 },
+    "s3": { "x": 500, "y": 140 },
+    "s6": { "x": 500, "y": 300 },
+    "s5": { "x": 780, "y": 0 },
+    "end": { "x": 1060, "y": 160 }
+  },
+  "nodes": [
+    { "id": "start", "type": "start", "label": "Bắt đầu" },
+    { "id": "s1", "type": "task", "label": "Chương trình đón đoàn", "title": "Lập chương trình đón đoàn",
+      "assignee": { "kind": "user", "userId": "U_LAN" },
+      "due": { "anchor": "run_target", "offset": { "value": -7, "unit": "working_day" } } },
+    { "id": "s4", "type": "task", "label": "Tạm ứng", "title": "Lập đề nghị tạm ứng",
+      "assignee": { "kind": "user", "userId": "U_PHUONG" },
+      "form": [ { "key": "amount", "label": "Số tiền đề nghị tạm ứng", "type": "money", "required": true } ],
+      "due": { "anchor": "run_target", "offset": { "value": -7, "unit": "working_day" } } },
+    { "id": "s2", "type": "task", "label": "Hồ sơ pháp lý", "title": "Hồ sơ pháp lý đất và tài liệu giới thiệu",
+      "assignee": { "kind": "user", "userId": "U_NGOCANH" },
+      "due": { "anchor": "run_target", "offset": { "value": -5, "unit": "working_day" } } },
+    { "id": "s3", "type": "task", "label": "Tuyến tham quan", "title": "Kiểm tra tuyến tham quan",
+      "assignee": { "kind": "user", "userId": "U_TUAN" },
+      "due": { "anchor": "run_target", "offset": { "value": -6, "unit": "working_day" } } },
+    { "id": "s6", "type": "approval", "label": "Duyệt tạm ứng", "title": "Duyệt đề nghị tạm ứng",
+      "approvers": [ { "kind": "user", "userId": "U_HUY" } ], "mode": "any",
+      "due": { "anchor": "run_target", "offset": { "value": -6, "unit": "working_day" } } },
+    { "id": "s5", "type": "task", "label": "Báo giá", "title": "Báo giá thuê nhà xưởng cho đoàn",
+      "assignee": { "kind": "user", "userId": "U_HUNG" },
+      "due": { "anchor": "run_target", "offset": { "value": -4, "unit": "working_day" } } },
+    { "id": "end", "type": "end", "label": "Hoàn tất" }
+  ],
+  "edges": [
+    { "id": "e1", "from": "start", "to": "s1" }, { "id": "e2", "from": "start", "to": "s4" },
+    { "id": "e3", "from": "s1", "to": "s2" },    { "id": "e4", "from": "s1", "to": "s3" },
+    { "id": "e5", "from": "s4", "to": "s6" },    { "id": "e6", "from": "s2", "to": "s5" },
+    { "id": "e7", "from": "s3", "to": "end" },   { "id": "e8", "from": "s5", "to": "end" },
+    { "id": "e9", "from": "s6", "to": "end", "outcome": "approved" }
+  ]
+}

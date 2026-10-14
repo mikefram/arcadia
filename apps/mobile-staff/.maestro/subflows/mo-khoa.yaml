@@ -1,0 +1,23 @@
+# Mở khoá bằng PIN nếu màn khoá đang hiện. CHƯA CHẠY.
+appId: vn.mihato.viectoi
+---
+- runFlow:
+    when:
+      visible:
+        id: lock-screen
+    commands:
+      - evalScript: ${output.pin = PIN.split('')}
+      - tapOn:
+          id: pin-key-${output.pin[0]}
+      - tapOn:
+          id: pin-key-${output.pin[1]}
+      - tapOn:
+          id: pin-key-${output.pin[2]}
+      - tapOn:
+          id: pin-key-${output.pin[3]}
+      - tapOn:
+          id: pin-key-${output.pin[4]}
+      - tapOn:
+          id: pin-key-${output.pin[5]}
+      - assertNotVisible:
+          id: lock-screen

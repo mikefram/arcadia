@@ -1,0 +1,23 @@
+# SPEC 8.1 điều 1, 13.7: từ thông báo đến việc cần làm không quá một chạm.
+# Chạm một thông báo đẩy thật không tự động hoá được trên máy ảo, nên luồng này mở đúng liên kết sâu mà thông báo mang
+# (mihato://step/{id}, SPEC 8.3) khi app đang đóng. Kiểm thông báo đẩy thật làm tay trên máy thật (SPEC 13.7).
+# STEP_ID: id của một việc đang mở của Lan (xem ở web quản trị, hoặc GET /v1/steps?assignee=<id của Lan>).
+# CHƯA CHẠY.
+appId: vn.mihato.viectoi
+env:
+  PIN: ${PIN || '271828'}
+---
+- stopApp
+- openLink: mihato://step/${STEP_ID}
+# App vừa mở nên đang khoá: mở khoá xong phải tới ĐÚNG việc, không dừng ở danh sách
+- runFlow: subflows/mo-khoa.yaml
+- extendedWaitUntil:
+    visible: Chi tiết việc
+    timeout: 2000 # SPEC 8.6 điều 1 [MỤC TIÊU]: không quá 2 giây khi mạng tốt
+- assertVisible:
+    id: step-title
+- assertVisible: Thuộc lượt
+- assertVisible: Hạn
+- assertVisible: Người giao
+- assertVisible:
+    id: action-complete

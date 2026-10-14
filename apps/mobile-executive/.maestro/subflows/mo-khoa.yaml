@@ -1,0 +1,11 @@
+# Mở khoá bằng PIN nếu màn khoá (M0) đang hiện; xong thì không còn màn khoá. CHƯA CHẠY.
+appId: vn.mihato.dieuhanh
+---
+- runFlow:
+    when:
+      visible:
+        id: lock-screen
+    commands:
+      - runFlow: nhap-pin.yaml
+      - assertNotVisible:
+          id: lock-screen

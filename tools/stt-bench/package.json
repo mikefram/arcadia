@@ -1,0 +1,22 @@
+{
+  "name": "@mihato/stt-bench",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bench": "tsx src/cli.ts",
+    "fixtures": "tsx scripts/make-fixtures.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@mihato/domain": "workspace:*",
+    "@mihato/providers": "workspace:*",
+    "ws": "^8.22.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@mihato/config": "workspace:*",
+    "@types/ws": "^8.18.2"
+  }
+}

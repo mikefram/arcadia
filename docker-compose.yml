@@ -1,0 +1,104 @@
+# CHỈ DÙNG TRÊN MÁY PHÁT TRIỂN. KHÔNG dùng cho máy chủ thật: NODE_ENV=development, mật khẩu *_dev và token dev ghi cứng,
+# web quản trị chạy `vite dev`, không TLS. Máy chủ thật dùng deploy/compose.production.yml (docs/ops/runbook.md).
+#
+# Cả hệ thống với các bản giả (SPEC 12.3, môi trường local). Không gọi nhà cung cấp trả phí.
+# Chỉ CSDL:            docker compose up -d postgres
+# Cả bộ, CSDL trống:   docker compose --profile app up --build
+# Cả bộ, kèm dữ liệu mẫu (SPEC 15.4):   docker compose --profile app --profile demo up --build
+# Migrate không còn chạy seed: dữ liệu mẫu nằm ở service `seed` (profile demo), từ chối chạy ở production.
+name: mihato
+
+x-app-env: &app-env
+  NODE_ENV: development
+  DATABASE_URL: postgres://app_user:app_user_dev@postgres:5432/mihato_dev
+  DATABASE_URL_OWNER: postgres://app_owner:app_owner_dev@postgres:5432/mihato_dev
+  DATABASE_URL_SCAN: postgres://app_scan:app_scan_dev@postgres:5432/mihato_dev
+  STT_PROVIDER: fake
+  LLM_PROVIDER: fake
+  TTS_PROVIDER: fake
+  PUSH_PROVIDER: fake
+  EMAIL_PROVIDER: fake
+  WEB_ORIGIN: http://localhost:5273
+  INTERNAL_SERVICE_TOKEN: dev-internal-service-token-change-me
+  API_INTERNAL_URL: http://api:3100
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_dev
+      POSTGRES_DB: postgres
+    ports:
+      - "127.0.0.1:5455:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mihato_dev"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    profiles: ["app"]
+    build: { context: ., dockerfile: Dockerfile, target: runtime }
+    image: mihato-server:local
+    environment: *app-env
+    command: ["node", "--import", "tsx", "packages/backend/scripts/migrate.ts"]
+    healthcheck: { disable: true }
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  # Dữ liệu mẫu: chỉ khi bật profile demo. Ghi db/seed/ids.json nên chạy bằng root trong container.
+  seed:
+    profiles: ["demo"]
+    image: mihato-server:local
+    user: root
+    environment: *app-env
+    command: ["node", "--import", "tsx", "packages/backend/scripts/seed.ts"]
+    healthcheck: { disable: true }
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  api:
+    profiles: ["app"]
+    image: mihato-server:local
+    command: ["node", "--import", "tsx", "apps/api/src/main.ts"]
+    environment:
+      <<: *app-env
+      PORT: 3100
+    ports: ["127.0.0.1:3100:3100"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  worker:
+    profiles: ["app"]
+    image: mihato-server:local
+    command: ["node", "--import", "tsx", "apps/worker/src/main.ts"]
+    healthcheck: { disable: true }
+    environment: *app-env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  scribe:
+    profiles: ["app"]
+    image: mihato-server:local
+    command: ["node", "--import", "tsx", "apps/scribe/src/main.ts"]
+    environment:
+      <<: *app-env
+      PORT: 3200
+    ports: ["127.0.0.1:3200:3200"]
+    depends_on: [api]
+
+  web-admin:
+    profiles: ["app"]
+    build: { context: ., dockerfile: Dockerfile, target: dev }
+    environment:
+      VITE_API_PROXY: http://api:3100
+    command: ["pnpm", "--filter", "@mihato/web-admin", "dev", "--host", "0.0.0.0"]
+    ports: ["127.0.0.1:5273:5273"]
+    depends_on: [api]
+
+volumes:
+  pgdata:

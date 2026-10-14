@@ -1,0 +1,30 @@
+# SPEC 8.1 điều 2, 8.6 điều 2: báo hoàn thành trong tối đa HAI chạm từ màn chi tiết việc (không bắt buộc ghi chú).
+# Điều kiện: việc đầu danh sách không có ô bắt buộc trong biểu mẫu kết quả (việc "Lập chương trình đón đoàn").
+# CHƯA CHẠY.
+appId: vn.mihato.viectoi
+env:
+  PIN: ${PIN || '271828'}
+---
+- launchApp
+- runFlow: subflows/mo-khoa.yaml
+- tapOn:
+    id: step-card-.*
+    index: 0
+- assertVisible: Chi tiết việc
+# Chạm thứ nhất
+- tapOn:
+    id: action-complete
+# Chạm thứ hai
+- tapOn:
+    id: send
+# Không còn chạm nào nữa: về lại chi tiết việc, việc đã xong
+- extendedWaitUntil:
+    visible: Đã báo hoàn thành.
+    timeout: 10000
+- assertVisible: Xong
+- assertNotVisible:
+    id: action-complete
+- back
+- tapOn:
+    id: mywork-tab-done
+- assertVisible: Xong lúc.*

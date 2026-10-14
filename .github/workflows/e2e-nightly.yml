@@ -1,0 +1,64 @@
+# Playwright của web quản trị (SPEC 13.1: bản đầy đủ ban đêm). Dựng đủ api, worker, web với dữ liệu mẫu (nhà cung cấp giả).
+# CHƯA CHẠY LẦN NÀO trên GitHub (repo chưa có remote khi viết): có thể cần chỉnh thời gian chờ hoặc bước cài trình duyệt.
+name: e2e-nightly
+on:
+  schedule:
+    # 19:47 UTC = 02:47 giờ Việt Nam
+    - cron: '47 19 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres_dev
+        ports: ['5455:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 3s --health-timeout 3s --health-retries 20
+    env:
+      NODE_ENV: development
+      STT_PROVIDER: fake
+      LLM_PROVIDER: fake
+      TTS_PROVIDER: fake
+      PUSH_PROVIDER: fake
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Vai trò CSDL, migrate, dữ liệu mẫu
+        run: |
+          PGPASSWORD=postgres_dev psql -h 127.0.0.1 -p 5455 -U postgres -f db/init/00_roles.sql
+          pnpm db:migrate
+          pnpm db:seed
+      - name: Trình duyệt Playwright
+        run: pnpm --filter @mihato/web-admin exec playwright install --with-deps chromium
+      - name: Khởi động api, worker, web
+        run: |
+          nohup pnpm dev > dev.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -fsS http://localhost:3100/healthz >/dev/null 2>&1 && curl -fsS http://localhost:5273 >/dev/null 2>&1 && exit 0
+            sleep 2
+          done
+          cat dev.log; exit 1
+      - name: Playwright
+        run: pnpm --filter @mihato/web-admin e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: |
+            apps/web-admin/test-results
+            dev.log
+          retention-days: 7

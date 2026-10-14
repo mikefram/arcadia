@@ -1,0 +1,7 @@
+# Về Trang chủ bằng nút đáy "Trang chủ" (thanh điều hướng có ở mọi màn hình chính). CHƯA CHẠY.
+appId: vn.mihato.dieuhanh
+---
+- tapOn:
+    id: nav-home
+- assertVisible:
+    id: screen-home

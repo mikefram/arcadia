@@ -1,0 +1,43 @@
+# SPEC 7.4 (M4, M5), 13.7: xem Tiến độ. Trang chủ → thẻ "Xem tiến độ" → danh sách lượt (tên, thanh tiến độ kèm chữ,
+# dòng trạng thái bằng chữ) → chạm một lượt → danh sách dọc các việc (người nhận, hạn viết đủ, trạng thái). CHƯA CHẠY.
+appId: vn.mihato.dieuhanh
+env:
+  PIN: ${PIN || '271828'}
+---
+- launchApp
+- runFlow: subflows/mo-khoa.yaml
+- assertVisible:
+    id: screen-home
+- tapOn:
+    id: home-card-progress
+- assertVisible:
+    id: screen-progress
+- extendedWaitUntil:
+    visible:
+      id: run-card-0
+    timeout: 20000
+# Thẻ lượt: tên, "n trên m việc đã xong", dòng trạng thái bằng chữ (không chỉ màu)
+- assertVisible: '[0-9]+ trên [0-9]+ việc đã xong'
+- assertVisible: 'Đúng tiến độ|Chậm [0-9]+ ngày làm việc|Đang chậm|Đã hoàn tất'
+- tapOn:
+    id: run-card-0
+- assertVisible:
+    id: screen-run
+- extendedWaitUntil:
+    visible:
+      id: step-0
+    timeout: 20000
+- assertVisible: Các việc của lượt này
+- assertVisible: 'Người nhận: .*|Chưa có người nhận'
+- assertVisible: 'Hạn: .*|Chưa có hạn'
+# Lượt đang chậm thì có nút đi thúc (mở M2 với câu soạn sẵn)
+- runFlow:
+    when:
+      visible:
+        id: run-nudge-late
+    commands:
+      - assertVisible: Nhờ trợ lý đi thúc những việc chậm
+- tapOn:
+    id: screen-back
+- assertVisible:
+    id: screen-progress

@@ -1,0 +1,2 @@
+ALTER TABLE "process_templates" ADD COLUMN "kind" text DEFAULT 'process' NOT NULL;--> statement-breakpoint
+ALTER TABLE "process_templates" ADD CONSTRAINT "process_templates_kind_check" CHECK ("process_templates"."kind" IN ('process','adhoc'));

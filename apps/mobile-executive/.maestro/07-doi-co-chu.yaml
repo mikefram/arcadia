@@ -1,0 +1,38 @@
+# SPEC 7.3, 7.4 (M7), 13.7: đổi cỡ chữ. Ba nút Lớn / Rất lớn / Cực lớn (không thanh trượt); lưu ở máy chủ và áp ngay.
+# Cuối luồng trả về "Lớn". CHƯA CHẠY.
+appId: vn.mihato.dieuhanh
+env:
+  PIN: ${PIN || '271828'}
+---
+- launchApp
+- runFlow: subflows/mo-khoa.yaml
+- assertVisible:
+    id: screen-home
+- tapOn:
+    id: header-settings
+- assertVisible:
+    id: screen-settings
+- assertVisible: Cỡ chữ
+- assertVisible: 'Chữ mẫu: Việc cần quyết hôm nay'
+- tapOn:
+    id: font-scale-xxlarge
+# Chữ mẫu vẫn hiện (to hơn) và nút "Cực lớn" đang được chọn (có dấu tích, không chỉ khác màu)
+- assertVisible: 'Chữ mẫu: Việc cần quyết hôm nay'
+- assertVisible:
+    id: font-scale-xxlarge
+    selected: true
+- tapOn:
+    id: font-scale-xlarge
+- assertVisible:
+    id: font-scale-xlarge
+    selected: true
+- tapOn:
+    id: font-scale-large
+- assertVisible:
+    id: font-scale-large
+    selected: true
+# Quay lại Trang chủ: cỡ chữ đã lưu
+- tapOn:
+    id: screen-back
+- assertVisible:
+    id: screen-home

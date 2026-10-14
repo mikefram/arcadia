@@ -1,0 +1,63 @@
+# SPEC 6.5, 7.4 (M2, M3, M3b), 10.6, 13.7: đi thúc → Đồng ý gửi → Hoàn tác. Người nhận KHÔNG nhận tin.
+# Điều kiện: chạy trong khoảng 07:00 đến 21:00 (từ 21:00 đến 07:00 là giờ yên tĩnh, mọi đề xuất đi thúc bị chặn) và có việc quá hạn
+# của anh Tuấn chưa bị nhắc hôm nay (xem config.yaml).
+# scripts/dem-tin-nhac.js đếm tin "nhắc" mà anh Tuấn nhận được, trước và sau (đăng nhập web bằng tuan@demo.mihato.local). CHƯA CHẠY.
+appId: vn.mihato.dieuhanh
+env:
+  PIN: ${PIN || '271828'}
+---
+- runScript:
+    file: scripts/dem-tin-nhac.js
+    env:
+      API_URL: ${API_URL}
+      DEMO_PASSWORD: ${DEMO_PASSWORD}
+      PHASE: truoc
+- launchApp
+- runFlow: subflows/mo-khoa.yaml
+- runFlow: subflows/vao-tro-ly.yaml
+- runFlow:
+    file: subflows/gui-cau-hoi.yaml
+    env:
+      CAU: đi thúc anh Tuấn
+# M3: màn xác nhận đầy đủ, câu do MÁY CHỦ dựng; hai nút "Đồng ý gửi" và "Không gửi"
+- extendedWaitUntil:
+    visible:
+      id: screen-review
+    timeout: 60000
+- assertVisible: Xin .* xem lại
+- assertVisible: do Trợ lý AI soạn
+- assertVisible: 'Gửi lời nhắc tới anh .* về việc .*'
+- assertVisible: Câu sẽ gửi
+- assertVisible: Đồng ý gửi
+- assertVisible: Không gửi
+- tapOn:
+    id: review-confirm
+# M3b: đếm ngược bằng chữ, màn hình giữ nguyên
+- extendedWaitUntil:
+    visible:
+      id: undo-banner
+    timeout: 15000
+- assertVisible: Đã đồng ý. Sẽ gửi sau 30 giây.
+- assertVisible: Còn [0-9]+ giây
+- assertVisible: Hoàn tác
+- assertVisible: Gửi ngay
+- tapOn:
+    id: undo-button
+- extendedWaitUntil:
+    visible:
+      id: agreed-undone
+    timeout: 10000
+- assertVisible: Đã hoàn tác. Không gửi gì cả.
+- tapOn:
+    id: result-understood
+# Chờ quá 30 giây gốc (cửa hoàn tác) rồi kiểm: người nhận không nhận tin nào
+- runScript:
+    file: scripts/cho-giay.js
+    env:
+      SECONDS: '40'
+- runScript:
+    file: scripts/dem-tin-nhac.js
+    env:
+      API_URL: ${API_URL}
+      DEMO_PASSWORD: ${DEMO_PASSWORD}
+      PHASE: sau

@@ -1,0 +1,60 @@
+# SPEC 8.4, 8.6 điều 3, 13.7: tắt mạng, báo xong hai việc, bật mạng: hai việc xong đúng một lần ở máy chủ.
+# Điều kiện: Lan có ít nhất hai việc đang mở không có biểu mẫu bắt buộc (khởi chạy thêm một lượt "Đón đoàn" trên web).
+# `setAirplaneMode` chỉ chạy trên Android. Việc "đúng một lần ở máy chủ" kiểm sau luồng bằng scripts/kiem-mot-lan.js:
+# mỗi việc có đúng một sự kiện CompleteStep trong dòng thời gian của lượt chạy.
+# CHƯA CHẠY.
+appId: vn.mihato.viectoi
+env:
+  PIN: ${PIN || '271828'}
+---
+- launchApp
+- runFlow: subflows/mo-khoa.yaml
+- assertVisible:
+    id: screen-mywork
+# Mở sẵn hai việc khi còn mạng để chi tiết nằm trong bản lưu (app cũng tự tải sẵn chi tiết các việc cần làm)
+- setAirplaneMode: enabled
+- extendedWaitUntil:
+    visible: Đang không có mạng.*
+    timeout: 15000
+# Việc thứ nhất
+- tapOn:
+    id: step-card-.*
+    index: 0
+- tapOn:
+    id: action-complete
+- tapOn:
+    id: send
+- assertVisible: Chờ gửi
+- back
+# Việc thứ hai
+- tapOn:
+    id: step-card-.*
+    index: 1
+- tapOn:
+    id: action-complete
+- tapOn:
+    id: send
+- assertVisible: Chờ gửi
+- back
+- assertVisible: Có 2 thao tác chờ gửi
+# Tắt hẳn app rồi mở lại khi vẫn mất mạng: hàng đợi và bản lưu còn nguyên
+- stopApp
+- launchApp
+- runFlow: subflows/mo-khoa.yaml
+- assertVisible: Có 2 thao tác chờ gửi
+- assertVisible: Đang không có mạng.*
+# Có mạng lại: app tự gửi theo thứ tự
+- setAirplaneMode: disabled
+- extendedWaitUntil:
+    notVisible: Có 2 thao tác chờ gửi
+    timeout: 30000
+- assertNotVisible: Chờ gửi
+- tapOn:
+    id: mywork-tab-done
+- assertVisible: Xong lúc.*
+- runScript:
+    file: scripts/kiem-mot-lan.js
+    env:
+      API_URL: ${API_URL}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}

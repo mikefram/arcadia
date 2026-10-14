@@ -1,0 +1,25 @@
+{
+  "name": "@mihato/ai-tools",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./evals/fake-backend": "./evals/fake-backend.ts",
+    "./evals/fixtures": "./evals/fixtures.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "evals": "tsx evals/run.ts"
+  },
+  "dependencies": {
+    "@mihato/domain": "workspace:*",
+    "@mihato/i18n": "workspace:*",
+    "@mihato/providers": "workspace:*",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@mihato/config": "workspace:*"
+  }
+}

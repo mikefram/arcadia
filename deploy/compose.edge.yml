@@ -1,0 +1,35 @@
+# Chạy SAU một reverse proxy dùng chung trên cùng máy chủ (ví dụ `edge-caddy` giữ cổng 80 và 443 cho nhiều ứng dụng).
+# Dùng thay cho việc web tự giữ cổng 80/443 và tự xin chứng chỉ: proxy chung lo TLS, rồi chuyển tên miền vào container `web`.
+#
+# Bật: thêm vào tệp môi trường production (/etc/mihato/production.env) dòng
+#     MIHATO_COMPOSE_EXTRA=compose.edge.yml
+# deploy.sh, rollback.sh và backup.sh tự đọc dòng này. Kiểm: docker compose ... config -q
+#
+# Cần: một mạng Docker ngoài tên `edge` mà proxy chung đã tham gia (docker network ls). Đổi tên ở khối `networks` nếu khác.
+# Phía proxy chung thêm một khối cho tên miền, ví dụ /opt/edge/sites/vrg-tool.caddy:
+#     vrg-tool.mihato.tech {
+#         reverse_proxy mihato-web:80 { flush_interval -1  transport http { read_timeout 24h } }
+#     }
+# Caddy trong ảnh web vẫn lo định tuyến, CSP và giới hạn thân yêu cầu; chỉ khác là nghe HTTP thường ở cổng 80 NỘI BỘ.
+services:
+  web:
+    # Không mở cổng ra máy chủ: proxy chung vào qua mạng `edge`.
+    ports: !reset []
+    environment:
+      # Địa chỉ trang có `http://` thì Caddy nghe HTTP ở cổng 80, không xin chứng chỉ, không chuyển hướng sang https.
+      # Chỉ đổi biến của container web; DOMAIN dùng để dựng địa chỉ công khai ở api, worker, scribe giữ nguyên.
+      DOMAIN: http://${DOMAIN}
+    networks:
+      app: {}
+      edge:
+        # Tên mà proxy chung dùng để gọi vào (reverse_proxy mihato-web:80).
+        aliases: [mihato-web]
+  ops-alert:
+    environment:
+      # Chứng chỉ do proxy chung giữ, không còn ở container web: bỏ kiểm hạn TLS ở đây (ops-alert bỏ qua khi trống).
+      TLS_CHECK_ADDR: ""
+
+networks:
+  edge:
+    external: true
+    name: edge

@@ -1,0 +1,4 @@
+{
+  "extends": "@mihato/config/tsconfig.node.json",
+  "include": ["src", "test", "scripts"]
+}

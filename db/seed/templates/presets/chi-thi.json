@@ -1,0 +1,84 @@
+{
+  "meta": {
+    "id": "chi-thi",
+    "name": "Chỉ thị của Chủ tịch",
+    "description": "Chủ tịch ra chỉ thị, Giám đốc tiếp nhận và phân công người chủ trì cùng người phối hợp, các Phó giám đốc và trưởng phòng thực hiện, người chủ trì tổng hợp báo cáo, Chủ tịch xác nhận hoàn thành.",
+    "category": "directive",
+    "summary": [
+      "Chủ tịch: ban hành chỉ thị (nội dung, mức khẩn, hạn, tài liệu kèm theo); nhận số chỉ thị tự động",
+      "Giám đốc: tiếp nhận, cho ý kiến chỉ đạo, chọn người chủ trì và người phối hợp",
+      "Người chủ trì và người phối hợp: mỗi người gửi kết quả phần việc của mình kèm tệp minh chứng",
+      "Người chủ trì: tổng hợp báo cáo, xuất tệp Word báo cáo kết quả",
+      "Chủ tịch: xác nhận hoàn thành, hoặc trả lại để tổng hợp lại"
+    ]
+  },
+  "definition": {
+    "schemaVersion": 1,
+    "name": "Chỉ thị của Chủ tịch",
+    "inputs": [
+      { "key": "soChiThi", "label": "Số chỉ thị", "type": "autonumber", "register": "CHITHI", "hint": "Hệ thống tự cấp khi ban hành." },
+      { "key": "tieuDe", "label": "Tiêu đề chỉ thị", "type": "text", "required": true },
+      { "key": "noiDung", "label": "Nội dung chỉ thị", "type": "longtext", "required": true },
+      { "key": "mucKhan", "label": "Mức khẩn", "type": "select", "required": true, "options": [
+        { "value": "thuong", "label": "Thường" }, { "value": "khan", "label": "Khẩn" }, { "value": "hoa_toc", "label": "Hỏa tốc" } ] },
+      { "key": "hanHoanThanh", "label": "Hạn hoàn thành", "type": "date", "required": true },
+      { "key": "tep", "label": "Tài liệu kèm theo", "type": "file", "multiple": true }
+    ],
+    "targetField": "hanHoanThanh",
+    "starters": [ { "kind": "role", "role": "chairman" } ],
+    "layout": {
+      "start": { "x": 0, "y": 140 },
+      "nhan": { "x": 220, "y": 140 },
+      "thuchien": { "x": 500, "y": 140 },
+      "tonghop": { "x": 780, "y": 140 },
+      "xacnhan": { "x": 1060, "y": 140 },
+      "end": { "x": 1340, "y": 140 }
+    },
+    "nodes": [
+      { "id": "start", "type": "start", "label": "Chủ tịch ra chỉ thị" },
+      { "id": "nhan", "type": "task", "label": "Giám đốc tiếp nhận", "title": "Tiếp nhận chỉ thị, cho ý kiến và phân công",
+        "description": "Đọc chỉ thị, cho ý kiến chỉ đạo, chọn người chủ trì và những người phối hợp thực hiện.",
+        "assignee": { "kind": "role", "role": "director" },
+        "due": { "anchor": "activation", "offset": { "value": 1, "unit": "working_day" } },
+        "form": [
+          { "key": "yKien", "label": "Ý kiến chỉ đạo của Giám đốc", "type": "longtext", "required": true },
+          { "key": "chuTri", "label": "Người chủ trì thực hiện", "type": "user", "required": true },
+          { "key": "phoiHop", "label": "Người phối hợp", "type": "users", "hint": "Có thể chọn nhiều người; họ cùng gửi kết quả phần việc của mình." }
+        ] },
+      { "id": "thuchien", "type": "approval", "action": "contribute", "mode": "all", "label": "Thực hiện chỉ thị", "title": "Thực hiện chỉ thị và gửi kết quả phần việc của mình",
+        "approvers": [ { "kind": "step_field", "node": "nhan", "field": "chuTri" }, { "kind": "step_field", "node": "nhan", "field": "phoiHop" } ],
+        "due": { "anchor": "run_target", "offset": { "value": -2, "unit": "working_day" } },
+        "form": [
+          { "key": "ketQua", "label": "Kết quả thực hiện phần việc của mình", "type": "longtext", "required": true },
+          { "key": "tep", "label": "Tài liệu minh chứng", "type": "file", "multiple": true }
+        ] },
+      { "id": "tonghop", "type": "task", "label": "Tổng hợp báo cáo", "title": "Tổng hợp báo cáo kết quả thực hiện chỉ thị",
+        "assignee": { "kind": "step_field", "node": "nhan", "field": "chuTri" },
+        "due": { "anchor": "run_target", "offset": { "value": -1, "unit": "working_day" } },
+        "form": [ { "key": "baoCao", "label": "Báo cáo tổng hợp kết quả", "type": "longtext", "required": true } ],
+        "compile": {
+          "layout": "report",
+          "title": "Báo cáo kết quả thực hiện chỉ thị: {tieuDe}",
+          "includeAttachments": true,
+          "sections": [
+            { "heading": "Nội dung chỉ thị", "ref": "inputs.noiDung" },
+            { "heading": "Ý kiến chỉ đạo của Giám đốc", "ref": "steps.nhan.yKien" },
+            { "heading": "Kết quả thực hiện của từng người", "ref": "responses.thuchien.ketQua" },
+            { "heading": "Báo cáo tổng hợp", "ref": "steps.tonghop.baoCao" }
+          ]
+        } },
+      { "id": "xacnhan", "type": "approval", "mode": "any", "label": "Chủ tịch xác nhận", "title": "Xác nhận hoàn thành chỉ thị",
+        "approvers": [ { "kind": "role", "role": "chairman" } ],
+        "due": { "anchor": "run_target", "offset": { "value": 0, "unit": "working_day" } } },
+      { "id": "end", "type": "end", "label": "Hoàn tất" }
+    ],
+    "edges": [
+      { "id": "e1", "from": "start", "to": "nhan" },
+      { "id": "e2", "from": "nhan", "to": "thuchien" },
+      { "id": "e3", "from": "thuchien", "to": "tonghop", "outcome": "approved" },
+      { "id": "e4", "from": "tonghop", "to": "xacnhan" },
+      { "id": "e5", "from": "xacnhan", "to": "end", "outcome": "approved" },
+      { "id": "e6", "from": "xacnhan", "to": "tonghop", "outcome": "rejected" }
+    ]
+  }
+}

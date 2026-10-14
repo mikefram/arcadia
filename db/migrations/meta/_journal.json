@@ -1,0 +1,76 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791015767155,
+      "tag": "0000_init",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791015767544,
+      "tag": "0001_rls_roles_views",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791023165660,
+      "tag": "0002_progress_unaccent",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791168073573,
+      "tag": "0003_adhoc_tasks",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791193984329,
+      "tag": "0004_permission_rules",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791218216496,
+      "tag": "0005_van_thu_tep_so",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791250195742,
+      "tag": "0006_tep_pdf_di_kem",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791354159168,
+      "tag": "0007_chia_se_binh_luan",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791797435959,
+      "tag": "0008_cau_hinh_thu_to_chuc",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791822324929,
+      "tag": "0009_tep_dinh_kem_binh_luan",
+      "breakpoints": true
+    }
+  ]
+}

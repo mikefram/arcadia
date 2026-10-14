@@ -1,0 +1,36 @@
+# Ngữ cảnh dựng ảnh: chỉ những gì Dockerfile cần. Không bao giờ để bí mật hay dữ liệu vào ảnh.
+**/node_modules
+**/dist
+**/.turbo
+**/.expo
+**/coverage
+.git
+.github
+docs
+e2e
+# Hai app Expo không chạy trên máy chủ; chỉ giữ package.json để lockfile khớp (pnpm install --frozen-lockfile).
+apps/mobile-staff/*
+!apps/mobile-staff/package.json
+apps/mobile-executive/*
+!apps/mobile-executive/package.json
+tools/*
+!tools/stt-bench/package.json
+# Test và bộ đánh giá không vào ảnh chạy.
+apps/*/test
+packages/*/test
+apps/web-admin/e2e
+apps/web-admin/playwright*
+# Bí mật, dữ liệu phát triển, tệp tải lên, bản ghi âm
+.env
+.env.*
+!.env.example
+storage
+storage-test
+recordings
+test-results
+playwright-report
+db/seed/activation-links.txt
+db/seed/ids.json
+*.log
+*.docx
+.DS_Store

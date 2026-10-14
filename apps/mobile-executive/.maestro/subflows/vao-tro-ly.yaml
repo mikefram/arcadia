@@ -1,0 +1,27 @@
+# Mở tab Trợ lý. Lần đầu có màn đồng ý (micro chỉ mở khi bấm, âm thanh không lưu, bản chép được lưu, có nút xoá): bấm
+# "Tôi đồng ý". Máy chưa thu âm được thì ô gõ chữ đã mở sẵn; không thì bấm "Gõ chữ". CHƯA CHẠY.
+appId: vn.mihato.dieuhanh
+---
+- tapOn:
+    id: nav-assistant
+- runFlow:
+    when:
+      visible:
+        id: screen-consent
+    commands:
+      - assertVisible: Trước khi dùng trợ lý
+      - assertVisible: Âm thanh không được lưu lại.
+      - tapOn:
+          id: consent-agree
+- assertVisible:
+    id: screen-assistant
+- assertVisible: Trợ lý AI
+- runFlow:
+    when:
+      visible:
+        id: assistant-type
+    commands:
+      - tapOn:
+          id: assistant-type
+- assertVisible:
+    id: assistant-input

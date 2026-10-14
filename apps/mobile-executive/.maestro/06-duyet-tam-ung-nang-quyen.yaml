@@ -1,0 +1,77 @@
+# SPEC 7.4 (M6), 6.5, 10.2, 13.7: duyệt đề nghị tạm ứng có số tiền, kèm mã nâng quyền. Chạy với thiết bị của ông Huy
+# (deputy, người duyệt tạm ứng trong dữ liệu mẫu; mã kích hoạt dòng "Phạm Quang Huy (deputy)" trong db/seed/activation-links.txt).
+# Số tiền viết hai lần. Bấm "Đồng ý" thì app hỏi PIN, thiết bị ký thử thách lấy mã nâng quyền (60 giây) rồi mới duyệt.
+# Điều kiện: có ít nhất một việc "Duyệt đề nghị tạm ứng" đang chờ ông Huy (xem config.yaml). CHƯA CHẠY.
+appId: vn.mihato.dieuhanh
+env:
+  PIN: ${PIN || '271828'}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: mihato-exec://activate?token=${ACTIVATION_TOKEN}&api=${API_URL}
+- extendedWaitUntil:
+    visible: Xin đặt mã PIN 6 số
+    timeout: 20000
+- runFlow: subflows/nhap-pin.yaml
+- assertVisible: Xin nhập lại mã PIN
+- runFlow: subflows/nhap-pin.yaml
+- runFlow:
+    when:
+      visible:
+        id: biometric-skip
+    commands:
+      - tapOn:
+          id: biometric-skip
+- runFlow:
+    when:
+      visible:
+        id: biometric-continue
+    commands:
+      - tapOn:
+          id: biometric-continue
+- runFlow:
+    when:
+      visible:
+        id: push-skip
+    commands:
+      - tapOn:
+          id: push-skip
+- tapOn:
+    id: result-understood
+- extendedWaitUntil:
+    visible:
+      id: screen-home
+    timeout: 20000
+# M1 báo có việc chờ quyết; chạm thẻ
+- assertVisible: Có [0-9]+ việc đang chờ
+- tapOn:
+    id: home-card-decisions
+- assertVisible:
+    id: screen-decisions
+- extendedWaitUntil:
+    visible:
+      id: decision-card
+    timeout: 20000
+- assertVisible: Duyệt đề nghị tạm ứng
+# Số tiền viết hai lần: bằng số và bằng chữ
+- assertVisible: 'Số tiền: [0-9.]+ đồng \(.* đồng\)'
+- assertVisible: 'Người đề nghị: .*'
+- assertVisible: Việc này có số tiền.*
+- tapOn:
+    id: decision-approve
+# Có số tiền thì phải xác nhận lại bằng sinh trắc học hoặc PIN (mã nâng quyền)
+- extendedWaitUntil:
+    visible:
+      id: reauth-screen
+    timeout: 10000
+- assertVisible: Xin .* nhập mã PIN để xác nhận
+- runFlow: subflows/nhap-pin.yaml
+# Kết quả nằm yên tới khi bấm "Đã rõ" (không toast)
+- extendedWaitUntil:
+    visible:
+      id: decision-result
+    timeout: 20000
+- assertVisible: Đã đồng ý.
+- tapOn:
+    id: result-understood

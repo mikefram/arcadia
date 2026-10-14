@@ -1,0 +1,16 @@
+# Bấm sáu số của PIN trên bàn phím số của app. CHƯA CHẠY.
+appId: vn.mihato.viectoi
+---
+- evalScript: ${output.pin = PIN.split('')}
+- tapOn:
+    id: pin-key-${output.pin[0]}
+- tapOn:
+    id: pin-key-${output.pin[1]}
+- tapOn:
+    id: pin-key-${output.pin[2]}
+- tapOn:
+    id: pin-key-${output.pin[3]}
+- tapOn:
+    id: pin-key-${output.pin[4]}
+- tapOn:
+    id: pin-key-${output.pin[5]}

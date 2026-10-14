@@ -1,0 +1,111 @@
+/*
+ * Chỉnh React Flow cho hợp token của web quản trị (nền ngà, xanh lục đậm, vàng đồng).
+ * CSS của React Flow không nằm trong @layer nên thắng lớp tiện ích của Tailwind; vì vậy phần ghi đè
+ * đặt ở đây (cũng không nằm trong layer) và được nhập SAU '@xyflow/react/dist/style.css'.
+ */
+.designer-flow .react-flow {
+  --xy-background-color: var(--color-canvas);
+  --xy-node-boxshadow-default: none;
+  --xy-edge-stroke-default: var(--color-line);
+  --xy-edge-stroke-selected-default: var(--color-primary);
+  --xy-connectionline-stroke-default: var(--color-primary);
+  --xy-attribution-background-color-default: transparent;
+  --xy-minimap-background-color-default: var(--color-surface);
+  --xy-selection-background-color-default: rgb(29 91 67 / 0.08);
+  --xy-selection-border-default: 1px dashed var(--color-primary);
+  font-family: inherit;
+  color: var(--color-ink);
+}
+
+.designer-flow .react-flow__node {
+  /* Thẻ tự vẽ lo viền và nền; lớp bọc của React Flow chỉ giữ vị trí. */
+  border-radius: 12px;
+  cursor: grab;
+}
+.designer-flow .react-flow__node.dragging {
+  cursor: grabbing;
+}
+/* Vòng focus của bàn phím vẽ quanh thẻ tự vẽ (theo đúng hình thẻ), dày hơn vòng "đang chọn". */
+.designer-flow .react-flow__node:focus,
+.designer-flow .react-flow__node:focus-visible {
+  outline: none;
+}
+.designer-flow .react-flow__node:focus-visible [data-kind] {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.designer-flow .react-flow__node:not(.draggable) {
+  cursor: pointer;
+}
+
+/* Cổng nối: chấm tròn đủ lớn để bắt bằng chuột, vùng bắt rộng hơn hình vẽ. */
+.designer-flow .react-flow__handle {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--color-surface);
+  background: var(--color-line);
+  transition:
+    transform 120ms ease-out,
+    background-color 120ms ease-out;
+}
+.designer-flow .react-flow__handle::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border-radius: 9999px;
+}
+.designer-flow .react-flow__handle.source {
+  background: var(--color-primary);
+}
+.designer-flow .react-flow__handle.connectionindicator:hover,
+.designer-flow .react-flow__handle.connectingto,
+.designer-flow .react-flow__handle.valid {
+  background: var(--color-primary);
+  transform: translate(50%, -50%) scale(1.45);
+}
+.designer-flow .react-flow__handle-left.connectionindicator:hover,
+.designer-flow .react-flow__handle-left.connectingto,
+.designer-flow .react-flow__handle-left.valid {
+  transform: translate(-50%, -50%) scale(1.45);
+}
+.designer-flow .react-flow__handle:not(.connectionindicator) {
+  cursor: default;
+}
+
+/*
+ * Focus bàn phím trên đường nối: nét vẽ đổi sang màu chính và dày lên. Màu và độ dày của nét được đặt bằng style nội tuyến
+ * (theo trạng thái chọn, lỗi), nên chỉ !important mới đè được; không có thì đường nối nhận focus mà không đổi gì để nhìn thấy.
+ */
+.designer-flow .react-flow__edge:focus-visible .react-flow__edge-path {
+  stroke: var(--color-primary) !important;
+  stroke-width: 4px !important;
+}
+.designer-flow .react-flow__edge:focus,
+.designer-flow .react-flow__edge:focus-visible {
+  outline: none;
+}
+
+.designer-flow .react-flow__minimap {
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 12px;
+}
+
+.designer-flow .react-flow__panel {
+  margin: 12px;
+}
+
+.designer-flow .react-flow__attribution {
+  margin: 0 0 2px 6px;
+  font-size: 10px;
+}
+.designer-flow .react-flow__attribution a {
+  color: var(--color-ink-sub);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .designer-flow .react-flow__handle {
+    transition: none;
+  }
+}

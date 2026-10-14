@@ -1,0 +1,44 @@
+{
+  "name": "@mihato/backend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:reset": "tsx scripts/reset.ts",
+    "db:bootstrap": "tsx scripts/bootstrap-org.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:check": "drizzle-kit check",
+    "env:check": "tsx scripts/check-env.ts"
+  },
+  "dependencies": {
+    "@mihato/ai-tools": "workspace:*",
+    "@mihato/domain": "workspace:*",
+    "@mihato/i18n": "workspace:*",
+    "@mihato/providers": "workspace:*",
+    "@mihato/workflow-engine": "workspace:*",
+    "@node-rs/argon2": "^2.2.1",
+    "docx": "^9.8.1",
+    "drizzle-orm": "^0.45.3",
+    "jose": "^6.2.12",
+    "otplib": "^12.0.1",
+    "pdfkit": "0.20.2",
+    "pg": "^8.23.1",
+    "tsx": "^4.23.15",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@mihato/config": "workspace:*",
+    "@types/pdfkit": "0.17.6",
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "^0.31.11",
+    "pdfjs-dist": "^6.4.299"
+  }
+}

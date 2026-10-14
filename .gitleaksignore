@@ -1,0 +1,16 @@
+# Dấu vân tay (commit:tệp:luật:dòng) của các kết quả quét bí mật đã được xem xét và xác định là GIẢ:
+# giá trị mẫu trong tệp test, JWT mẫu, và tên cấu hình đo STT ("deepgram-nova3-keyterm") bị nhầm là khoá API.
+# Không có bí mật thật. Lịch sử git không viết lại được nên bỏ qua theo dấu vân tay; kết quả MỚI vẫn bị chặn.
+0f0368155cbdb7453fd3bda6109c02733c32b6b2:packages/backend/test/email-settings.test.ts:generic-api-key:14
+df20bff672a124d9b1f70877da372a17b6ee3329:apps/mobile-executive/test/session.test.ts:generic-api-key:222
+df20bff672a124d9b1f70877da372a17b6ee3329:apps/mobile-executive/test/session.test.ts:jwt:245
+df20bff672a124d9b1f70877da372a17b6ee3329:apps/scribe/test/env-production.test.ts:generic-api-key:6
+df20bff672a124d9b1f70877da372a17b6ee3329:apps/mobile-staff/test/session.test.ts:jwt:253
+df20bff672a124d9b1f70877da372a17b6ee3329:apps/mobile-staff/test/session.test.ts:jwt:273
+df20bff672a124d9b1f70877da372a17b6ee3329:packages/backend/test/env-production.test.ts:generic-api-key:25
+df20bff672a124d9b1f70877da372a17b6ee3329:packages/backend/test/env-production.test.ts:generic-api-key:26
+df20bff672a124d9b1f70877da372a17b6ee3329:tools/stt-bench/src/configs.ts:generic-api-key:15
+df20bff672a124d9b1f70877da372a17b6ee3329:tools/stt-bench/test/configs.test.ts:generic-api-key:30
+df20bff672a124d9b1f70877da372a17b6ee3329:tools/stt-bench/test/configs.test.ts:generic-api-key:44
+df20bff672a124d9b1f70877da372a17b6ee3329:tools/stt-bench/test/e2e.test.ts:generic-api-key:495
+df20bff672a124d9b1f70877da372a17b6ee3329:tools/stt-bench/test/e2e.test.ts:generic-api-key:533

@@ -1,0 +1,37 @@
+# S5 Báo vướng (SPEC 8.2): chọn lý do mẫu, ghi chú, Gửi. Trạng thái việc không đổi; việc hiện chip "Đang vướng".
+# CHƯA CHẠY.
+appId: vn.mihato.viectoi
+env:
+  PIN: ${PIN || '271828'}
+---
+- launchApp
+- runFlow: subflows/mo-khoa.yaml
+- tapOn:
+    id: step-card-.*
+    index: 0
+- tapOn:
+    id: action-block
+- assertVisible: Đang vướng vì
+- assertVisible: Thiếu thông tin
+- assertVisible: Chờ người khác
+- assertVisible: Cần quyết định
+- assertVisible: Lý do khác
+# Gửi khi chưa chọn lý do: app báo bằng chữ
+- tapOn:
+    id: send
+- assertVisible: Xin chọn một lý do.
+- tapOn:
+    id: choice-missing_info
+- tapOn:
+    id: note
+- inputText: Thieu danh sach khach cua doan
+- hideKeyboard
+- tapOn:
+    id: send
+- extendedWaitUntil:
+    visible: Chi tiết việc
+    timeout: 10000
+- assertVisible: Đang vướng
+# Việc vẫn mở: nút Báo hoàn thành còn đó
+- assertVisible:
+    id: action-complete

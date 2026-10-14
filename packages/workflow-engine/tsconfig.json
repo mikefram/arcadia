@@ -1,0 +1,4 @@
+{
+  "extends": "@mihato/config/tsconfig.base.json",
+  "include": ["src", "test"]
+}

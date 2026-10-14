@@ -1,0 +1,50 @@
+# S0 Kích hoạt (SPEC 8.2, 10.2, 11.7): mở đường dẫn kích hoạt, đọc "Hệ thống ghi nhận gì về tôi", đặt PIN 6 số.
+# CHƯA CHẠY.
+appId: vn.mihato.viectoi
+env:
+  PIN: ${PIN || '271828'}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: mihato://activate?token=${ACTIVATION_TOKEN}&api=${API_URL}
+# Máy chủ nhận mã → bước 1 trên 4: đọc thông tin
+- extendedWaitUntil:
+    visible: Hệ thống ghi nhận gì về tôi
+    timeout: 15000
+- assertVisible: Hệ thống ghi lại
+- assertVisible: Ai xem được
+- tapOn: Tôi đã đọc
+# Bước 2 trên 4: đặt PIN, nhập hai lần
+- assertVisible: Đặt mã PIN 6 số
+- runFlow: subflows/nhap-pin.yaml
+- assertVisible: Nhập lại mã PIN
+- runFlow: subflows/nhap-pin.yaml
+# Bước 3 trên 4: sinh trắc học (máy ảo thường chưa cài vân tay: chỉ có nút Tiếp tục)
+- runFlow:
+    when:
+      visible:
+        id: biometric-skip
+    commands:
+      - tapOn:
+          id: biometric-skip
+- runFlow:
+    when:
+      visible:
+        id: biometric-continue
+    commands:
+      - tapOn:
+          id: biometric-continue
+# Bước 4 trên 4: thông báo
+- runFlow:
+    when:
+      visible:
+        id: push-skip
+    commands:
+      - tapOn:
+          id: push-skip
+- tapOn: Xem việc của tôi
+- assertVisible:
+    id: screen-mywork
+- assertVisible: Cần làm
+- assertVisible: Đã xong

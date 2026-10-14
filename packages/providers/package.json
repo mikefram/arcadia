@@ -1,0 +1,24 @@
+{
+  "name": "@mihato/providers",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./push": "./src/push.ts",
+    "./email": "./src/email.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
+    "@mihato/domain": "workspace:*",
+    "ws": "^8.22.0"
+  },
+  "devDependencies": {
+    "@mihato/config": "workspace:*",
+    "@types/ws": "^8.18.2"
+  }
+}

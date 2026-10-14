@@ -1,0 +1,39 @@
+{
+  "name": "mihato-dieuhanh",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.4.2",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "lint": "eslint . --max-warnings=0",
+    "dev": "turbo run dev --parallel --filter=@mihato/api --filter=@mihato/worker --filter=@mihato/web-admin",
+    "dev:all": "turbo run dev --parallel --filter=@mihato/api --filter=@mihato/worker --filter=@mihato/scribe --filter=@mihato/web-admin",
+    "db:up": "docker compose up -d postgres",
+    "db:migrate": "pnpm --filter @mihato/backend db:migrate",
+    "db:seed": "pnpm --filter @mihato/backend db:seed",
+    "db:reset": "pnpm --filter @mihato/backend db:reset",
+    "db:bootstrap": "pnpm --filter @mihato/backend db:bootstrap",
+    "db:generate": "pnpm --filter @mihato/backend db:generate",
+    "db:check": "pnpm --filter @mihato/backend db:check",
+    "env:check": "pnpm --filter @mihato/backend env:check",
+    "evals": "pnpm --filter @mihato/ai-tools evals",
+    "stt-bench": "pnpm --filter @mihato/stt-bench bench",
+    "check:i18n": "pnpm --filter @mihato/i18n check"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.0.0",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
+    "tsx": "^4.23.15",
+    "turbo": "^2.11.7",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.0",
+    "vitest": "^5.0.3"
+  }
+}

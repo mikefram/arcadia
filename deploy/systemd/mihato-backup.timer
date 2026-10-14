@@ -1,0 +1,10 @@
+[Unit]
+Description=Sao lưu MIHATO hằng ngày lúc 02:00 (giờ máy chủ)
+
+[Timer]
+OnCalendar=*-*-* 02:00:00
+RandomizedDelaySec=300
+Persistent=true
+
+[Install]
+WantedBy=timers.target
